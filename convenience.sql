@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Oct 28, 2025 at 05:42 PM
+-- Generation Time: Oct 28, 2025 at 05:54 PM
 -- Server version: 5.7.24
 -- PHP Version: 8.2.14
 
@@ -150,7 +150,7 @@ CREATE TABLE `orders` (
   `order_date` date DEFAULT NULL,
   `total_amount` decimal(8,2) DEFAULT NULL,
   `payment_type` varchar(20) DEFAULT NULL,
-  `status` varchar(20) DEFAULT NULL,
+  `status` enum('Pending','Processing','Packed','Delivered','Completed','Cancelled') NOT NULL DEFAULT 'Pending',
   `coupon_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -165,7 +165,7 @@ CREATE TABLE `payments` (
   `order_id` int(11) DEFAULT NULL,
   `payment_date` date DEFAULT NULL,
   `amount_paid` decimal(8,2) DEFAULT NULL,
-  `method` varchar(30) DEFAULT NULL,
+  `method` enum('Cash','Credit Card','QR Payment') NOT NULL DEFAULT 'Cash',
   `transaction_code` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -200,7 +200,7 @@ CREATE TABLE `products` (
   `price` decimal(6,2) DEFAULT NULL,
   `stock_qty` int(11) DEFAULT NULL,
   `expiry_date` date DEFAULT NULL,
-  `status` varchar(20) NOT NULL DEFAULT 'active'
+  `status` enum('Active','Inactive','Out of Stock') NOT NULL DEFAULT 'Active'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -228,7 +228,7 @@ CREATE TABLE `users` (
   `password` varchar(100) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
   `phone_number` varchar(15) DEFAULT NULL,
-  `role` varchar(50) NOT NULL DEFAULT 'customer',
+  `role` enum('Customer','Staff','Admin') NOT NULL DEFAULT 'Customer',
   `points` int(11) DEFAULT '0'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
