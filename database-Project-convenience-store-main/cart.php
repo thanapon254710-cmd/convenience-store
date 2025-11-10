@@ -4,111 +4,203 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>Shopping Cart</title>
-        <link rel="stylesheet" href="css/cart.css">
-    </head>
-    <body style="background-color: ffffff;">
-
         <script src="https://cdn.tailwindcss.com"></script>
-            <script>
-            // Tailwind theme extension - Clean JavaScript for stability
-            tailwind.config = {
-                theme: {
-                    extend: {
-                        colors: {
-                            primary: '#b94a4a',
-                            accent: '#e86d6d',
-                            sidebar: '#f4f7fb', // Use a light background for the fixed bar
-                            soft: '#f7f7f9',
-                            outline: '#e8e8ea'
-                        },
-                        fontFamily: {
-                            body: ['"PT Serif"', 'Georgia', 'serif'],
-                            ui: ['Inter', 'system-ui', 'Arial']
-                        },
-                        boxShadow: {
-                            'soft-lg': '0 14px 30px rgba(9,18,40,0.08)',
-                            'card': '0 10px 20px rgba(9,18,40,0.06)'
-                        }
+        <script>
+        // Tailwind theme extension - Identical to other pages for consistent styling
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#b94a4a',
+                        accent: '#e86d6d',
+                        sidebar: '#f4f7fb', 
+                        soft: '#f7f7f9',
+                        outline: '#e8e8ea'
+                    },
+                    fontFamily: {
+                        body: ['"PT Serif"', 'Georgia', 'serif'],
+                        ui: ['Inter', 'system-ui', 'Arial']
+                    },
+                    boxShadow: {
+                        'soft-lg': '0 14px 30px rgba(9,18,40,0.08)',
+                        'card': '0 10px 20px rgba(9,18,40,0.06)'
                     }
                 }
             }
-            </script>
-            <nav class="flex-1">
-                <ul class="space-y-3">
-                    <!--Tab Bar-->
-                    <li><a href="HOME.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">🏠</span><span class="text-sm font-medium">Home</span></a></li>
-                    <!-- <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">🔎</span><span class="text-sm font-medium">Explore</span></a></li> -->
-                    <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">❤️</span><span class="text-sm font-medium">Wishlist </span></a></li>
-                    <li><a href="cart.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">🛒</span><span class="text-sm font-medium">Cart</span></a></li>
-                    <!-- <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💳  </span><span class="text-sm font-medium">Selling</span></a></li> -->
-                    <li><a href="userpage.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">👤</span><span class="text-sm font-medium">Profile</span></a></li>
-                    <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">📜</span><span class="text-sm font-medium">Preach History</span></a></li>
-                    <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💬</span><span class="text-sm font-medium">Contact us</span></a></li>
-                    <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">⚙️</span><span class="text-sm font-medium">Setting</span></a></li>
-                </ul>
-            </nav>
+        }
+        </script>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    </head>
+    <body class="min-h-screen antialiased text-gray-800 bg-soft">
+
+        <div class="flex min-h-screen">
+
+            <aside class="w-64 bg-sidebar p-4 sticky top-0 h-screen overflow-y-auto">
+                <div class="bg-white border border-blue-300 rounded-xl p-4 shadow-sm flex flex-col h-full">
+                    <div class="flex items-center gap-3 mb-6">
+                        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-400 text-white flex items-center justify-center text-lg font-bold"><img src="asset/2960679-2182.png"></div>
+                        <div>
+                            <div class="text-lg font-semibold">Convenience<br/><span class="text-sm text-gray-500">Store</span></div>
+                        </div>
+                    </div>
+
+                    <nav class="flex-1">
+                        <ul class="space-y-3">
+                            <li><a href="HOME.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">🏠</span><span class="text-sm font-medium">Home</span></a></li>
+                            <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">❤️</span><span class="text-sm font-medium">Wishlist </span></a></li>
+                            <li class="bg-red-50 rounded-lg"><a href="cart.php" class="flex items-center gap-3 px-2 py-2 rounded-lg text-primary"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-primary">🛒</span><span class="text-sm font-medium">Cart</span></a></li>
+                            <li><a href="userpage.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">👤</span><span class="text-sm font-medium">Profile</span></a></li>
+                            <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">📜</span><span class="text-sm font-medium">Preach History</span></a></li>
+                            <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💬</span><span class="text-sm font-medium">Contact us</span></a></li>
+                            <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">⚙️</span><span class="text-sm font-medium">Setting</span></a></li>
+                        </ul>
+                    </nav>
+
+                    <div class="mt-6">
+                        <div class="bg-gradient-to-br from-red-200 to-red-400 text-white rounded-2xl p-4 shadow-soft-lg relative overflow-hidden">
+                            <div class="flex items-start gap-3">
+                                <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-2xl">＋</div>
+                                <div>
+                                    <div class="text-sm font-semibold">Need Help</div>
+                                    <p class="text-xs mt-1 opacity-90">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
+                                </div>
+                            </div>
+                            <button class="mt-4 bg-white text-red-600 text-sm font-semibold px-3 py-2 rounded-md shadow">Customer Service</button>
+                            <div class="absolute -right-6 -bottom-8 w-40 h-40 rounded-full bg-white/10 transform rotate-12"></div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
             
-        <!--
-        <div class="pagebar">
-            <p>This is pagebar</p>
-            <a href="HOME.php"><p>Home</p></a>
-            <p>Search</p>
-            <a href="cart.php"><p>Cart</p></a>
-            <a href="userpage.php"><p>UserProfile</p></a>
+            <div class="flex-1 p-8">
+                <div class="max-w-screen-xl mx-auto">
+                    
+                    <div class="mb-8">
+                        <a href="HOME.php" class="text-lg text-gray-500 font-medium hover:text-primary transition flex items-center">
+                            <i class="fas fa-chevron-left mr-3 text-sm"></i>
+                            Shopping Continue
+                        </a>
+                    </div>
+
+                    <div class="flex gap-8">
+                        
+                        <div class="flex-grow">
+                            <div class="bg-white rounded-2xl shadow-card p-6">
+                                <h2 class="text-xl font-bold mb-1">Your Shopping Cart</h2>
+                                <p class="text-sm text-gray-600 mb-6">You have **... item(s)** in your cart</p>
+                                
+                                <div class="grid grid-cols-4 font-semibold text-sm text-gray-500 pb-2 border-b border-outline mb-4">
+                                    <p class="col-span-2">Product Details</p>
+                                    <p class="text-center">Quantity</p>
+                                    <p class="text-right">Price</p>
+                                </div>
+
+                                <form action="ShippingCart.php" method="post">
+                                    <div class="grid grid-cols-4 items-center py-4 border-b border-soft last:border-b-0">
+                                        <div class="flex items-center gap-4 col-span-2">
+                                            <img src="asset/example-product-1.png" alt="Product Image" class="w-16 h-16 object-cover rounded-lg border border-outline">
+                                            <div>
+                                                <p class="font-medium">Organic Fresh Milk (1L)</p>
+                                                <p class="text-xs text-gray-500">SKU: 98765</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-center flex justify-center items-center">
+                                            <input type="number" value="1" min="1" class="w-16 py-1 text-center border rounded-md bg-soft focus:outline-none focus:border-primary">
+                                        </div>
+                                        <div class="text-right flex justify-end items-center gap-3">
+                                            <p class="font-semibold text-gray-800">$5.20</p>
+                                            <button type="button" class="text-gray-400 hover:text-red-500 transition ml-2">
+                                                <i class="fas fa-times text-sm"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid grid-cols-4 items-center py-4 border-b border-soft last:border-b-0">
+                                        <div class="flex items-center gap-4 col-span-2">
+                                            <img src="asset/example-product-2.png" alt="Product Image" class="w-16 h-16 object-cover rounded-lg border border-outline">
+                                            <div>
+                                                <p class="font-medium">Crunchy Potato Chips (Lg)</p>
+                                                <p class="text-xs text-gray-500">SKU: 32109</p>
+                                            </div>
+                                        </div>
+                                        <div class="text-center flex justify-center items-center">
+                                            <input type="number" value="2" min="1" class="w-16 py-1 text-center border rounded-md bg-soft focus:outline-none focus:border-primary">
+                                        </div>
+                                        <div class="text-right flex justify-end items-center gap-3">
+                                            <p class="font-semibold text-gray-800">$15.98</p>
+                                            <button type="button" class="text-gray-400 hover:text-red-500 transition ml-2">
+                                                <i class="fas fa-times text-sm"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <div class="w-96 flex-shrink-0 space-y-6">
+
+                            <div class="bg-white rounded-2xl shadow-card p-6">
+                                <h3 class="text-xl font-bold mb-4 border-b pb-3">Order Summary</h3>
+                                <div class="text-base space-y-3">
+                                    <div class="flex justify-between">
+                                        <p class="text-gray-600">Subtotal (3 items)</p>
+                                        <p class="font-medium">$21.18</p>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <p class="text-gray-600">Shipping Estimate</p>
+                                        <p class="font-medium">$3.50</p>
+                                    </div>
+                                    <div class="flex justify-between font-bold text-lg border-t pt-3 mt-3">
+                                        <p>Total (Tax incl.)</p>
+                                        <p class="text-primary">$24.68</p>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="bg-gradient-to-br from-accent to-primary text-white rounded-2xl shadow-card p-6">
+                                <p class="font-bold text-xl mb-4">Card Details</p>
+                                
+                                <div class="flex justify-between items-center mb-4 border-b border-white/30 pb-3">
+                                    <p class="text-sm opacity-80">Payment Method</p>
+                                    
+                                    <div class="flex items-center gap-2">
+                                        <img src="asset/mastercard.png" alt="Mastercard" class="w-8 h-auto bg-white rounded p-1 border border-white transition hover:scale-105 shadow-md">
+                                        <img src="asset/Visa Payment Card.png" alt="Visa" class="w-8 h-auto bg-white rounded p-1 border border-white transition hover:scale-105 shadow-md">
+                                        <img src="asset/Rupay-Logo.png" alt="RuPay" class="w-8 h-auto bg-white rounded p-1 border border-white transition hover:scale-105 shadow-md">
+                                    </div>
+                                </div>
+
+                                <form class="space-y-4">
+                                    <div>
+                                        <label for="nameoncard" class="block text-xs font-medium mb-1 opacity-80">Name on Card</label>
+                                        <input type="text" id="nameoncard" name="nameoncard" placeholder="Enter name on card" class="w-full py-2 px-3 rounded-md border border-white/50 bg-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-1 focus:ring-white">
+                                    </div>
+
+                                    <div>
+                                        <label for="cardnumber" class="block text-xs font-medium mb-1 opacity-80">Card Number</label>
+                                        <input type="text" id="cardnumber" name="cardnumber" placeholder="XXXX XXXX XXXX XXXX" class="w-full py-2 px-3 rounded-md border border-white/50 bg-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-1 focus:ring-white">
+                                    </div>
+
+                                    <div class="flex gap-4">
+                                        <div class="flex-1">
+                                            <label for="exdate" class="block text-xs font-medium mb-1 opacity-80">Expiration Date</label>
+                                            <input type="text" id="exdate" name="exdate" placeholder="MM/YY" class="w-full py-2 px-3 rounded-md border border-white/50 bg-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-1 focus:ring-white">
+                                        </div>
+                                        <div class="flex-1">
+                                            <label for="cvv" class="block text-xs font-medium mb-1 opacity-80">CVV</label>
+                                            <input type="text" id="cvv" name="cvv" placeholder="CVV" class="w-full py-2 px-3 rounded-md border border-white/50 bg-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-1 focus:ring-white">
+                                        </div>
+                                    </div>
+                                    
+                                    <button id="paynow" class="w-full py-3 mt-6 bg-white text-primary font-semibold rounded-md shadow-lg hover:bg-gray-100 transition">
+                                        Pay Now $24.68
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        -->
-        <section class="content">
-            <div class="leftcart">
-                <div class="middlep">
-                    <div class="topleft">
-                        <input type="image" id="back" src="asset/left-arrow.png"  style="padding-left: 1%;"/>
-                        <p style="font-family: Arial; margin: 0;font-size: 22px;"><b>Shopping Continue</b></p>
-                    </div>
-                    <hr style="width: 100%; margin-bottom: 1.5rem; margin-right: 0;">
-                    <p><b>Shopping cart</b></p>
-                    <p>You have ... item in your cart</p>
-                    <form action="ShippingCart.php" method="post">
-                        <!--php-->
-                    </form>
-                    <div class="botleft">
-                        <p style="font-family: Arial; margin-left: 28px;">Item</p>
-                    </div>
-                </div>
-            </div>
-            <div class="rightcart">
-                <div class="redbox">
-                    <p style="padding-left: 10px; font-size: 19px;"><b>Card Details</b></p>
-                    <p style="padding-left: 10px; font-size: 12px;">Cart type</p>
-
-                    <div class="paymentmethod">                        
-                        <input type="image" id="mastercard" value="mastercard" src="asset/mastercard.png">         
-                        <input type="image" id="visa" value="visa" src="asset/Visa Payment Card.png">
-                        <input type="image" id="paypal" value="rupay" src="asset/Rupay-Logo.png">
-                        <input type="button" id="seeall" value="see all" src="asset/Rupay-Logo.png">
-                    </div>
-
-                    <p style="padding-left: 10px; font-size: 12px; padding-top: 15px;">Name on Card</p>
-                    <input type="text" id="nameoncard" name="nameoncard" placeholder="Enter name on card" style="margin-left: 10px; width: 95%; height: 30px; border-radius: 5px; border: none; background-color: #c03636; caret-color: white;">
-                    <p style="padding-left: 10px; font-size: 12px; padding-top: 15px;">Card Number</p>
-                    <input type="text" id="cardnumber" name="cardnumber" placeholder="Card Number" style="margin-left: 10px; width: 95%; height: 30px; border-radius: 5px; border: none; background-color: #c03636; caret-color: white;">
-
-                    <div class="excvv">
-                        <div class="ex">
-                            <p style="padding-left: 10px; font-size: 12px; padding-top: 15px;">Expiration date</p>
-                            <input type="text" id="exdate" name="exdate" placeholder="mm/yy" style="margin-left: 10px; width: 95%; height: 30px; border-radius: 5px; border: none; background-color: #c03636; caret-color: white;">
-                        </div>
-                        <div class="cvv">
-                            <p style="padding-left: 10px; font-size: 12px; padding-top: 15px;">CVV</p>
-                            <input type="text" id="cvv" name="cvv" placeholder="CVV" style="margin-left: 10px; width: 95%; height: 30px; border-radius: 5px; border: none; background-color: #c03636; caret-color: white;">
-                        </div>
-                    </div>
-                    <hr style="width: 90%; margin-top: 20px; margin-left: auto; margin-right: auto;">
-                    <p style="padding-left: 10px; font-size: 12px;">Subtotal:</p>
-                    <p style="padding-left: 10px; font-size: 12px;">Shipping:</p>
-                    <p style="padding-left: 10px; font-size: 12px;">Total(Tax incl.):</p>
-                    <input type="button" id="paynow" value="Pay Now" style="width: 90%; height: 40px; font-size: 16px; border: none; border-radius: 5px; margin-top: 10px; margin-bottom: 10px; margin-left: auto; margin-right: auto; display: block;">
-                </div>
-            </div>
-        </section>
     </body>
 </html>
