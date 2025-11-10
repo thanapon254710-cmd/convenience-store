@@ -1,0 +1,290 @@
+body
+{
+    display:flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    margin: 0%;
+}
+
+.content
+{
+    display:flex;
+    flex-direction: row;
+    width: 100%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.content .leftcart
+{
+   display: flex;
+   flex-direction: row;
+   width: 100%;
+   padding-top: 2%;
+   padding-left: 2%;
+}
+
+.middlep
+{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    font-family: Arial; 
+    margin-left: 32px;
+}
+
+.pagebar
+{
+    display: flex;
+    flex-direction: column;
+    margin-right: 0;
+    width: 150px;
+    height: 100vh;
+    background-color: #36454F;
+    color: white;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.content .leftcart .topleft
+{
+    display:flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding-top: 3%;
+    margin-bottom: 30px;
+    width: 100%;
+    height: 100px;
+    background-color: lightgrey;
+    border-radius: 1rem;
+}
+
+#back
+{
+    width:25px;
+    height: auto;
+    margin: 0;
+    margin-right: 10px;
+    cursor: pointer;
+}
+
+.botleft
+{
+    display: flex;
+    flex-direction: column;
+    border-radius: 0.5rem;
+    min-width: none;
+    width: 100%;
+    height: 100%;
+    background-color: yellowgreen;
+    padding: 3%;
+}
+
+.content .rightcart
+{
+    display:flex;
+    justify-content: right;
+    width: 70%;
+    margin-top: 2%;
+    margin-right: 4%;
+}
+
+.content .rightcart .redbox
+{
+    border-radius: 12px;
+    background-color: #cf6666;
+    padding: 1.25rem;
+    max-width: 375px;
+    max-height: 675px;
+    width: 100%;
+    height:auto;
+    display:flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    color:white;
+    font-family: Arial;
+}
+
+.paymentmethod
+{
+    display:flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-around;
+    width: 100%;
+}
+
+#mastercard, #visa, #paypal, #seeall
+{
+    width: 80px;
+    height: 60px;
+    background-color: rgb(255, 255, 255, 0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: arial,sans-serif;
+    font-size: 14px;
+    text-align: center;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    white-space: pre;
+    color: white;
+    border: none;
+}
+
+#mastercard:not(:disabled):hover, #visa:not(:disabled):hover, #paypal:not(:disabled):hover, #seeall:not(:disabled):hover{
+  outline: 0;
+  background: #c67979;
+}
+
+#nameoncard::placeholder, #cardnumber::placeholder
+{
+    color: white;
+    opacity: 0.5;
+    padding-left: 10px;
+}
+
+#nameoncard:focus, #cardnumber:focus
+{
+    outline: none;
+}
+
+.excvv
+{
+    display:flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 96%;
+}
+
+.excvv .ex
+{
+    display: flex;
+    flex-direction: column;
+}
+
+.excvv .cvv
+{
+    display: flex;
+    flex-direction: column;
+}
+
+#exdate::placeholder
+{
+    color: white;
+    opacity: 0.5;
+    padding-left: 10px;
+}
+
+#exdate:focus
+{
+    outline: none;
+}
+
+#cvv::placeholder
+{
+    color: white;
+    opacity: 0.5;
+    padding-left: 10px;
+}
+
+#cvv:focus
+{
+    outline: none;
+}
+
+#paynow {
+  background-color: #fff0b4;
+  border-radius: 12px;
+  color: #000;
+  cursor: pointer;
+  font-weight: bold;
+  padding: 10px 15px;
+  text-align: center;
+  transition: 200ms;
+  width: 100%;
+  box-sizing: border-box;
+  border: 0;
+  font-size: 16px;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+#paynow:not(:disabled):hover{
+  outline: 0;
+  background: #f4e603;
+  box-shadow: 0 0 0 2px rgba(0,0,0,.2), 0 3px 8px 0 rgba(0,0,0,.15);
+}
+
+#paynow:disabled {
+  filter: saturate(0.2) opacity(0.5);
+  -webkit-filter: saturate(0.2) opacity(0.5);
+  cursor: not-allowed;
+}
+
+#nameoncard, #cardnumber, #exdate, #cvv
+{  
+    box-sizing: border-box;
+}
+
+input[type="text"]
+{
+    color: white;
+    padding-left: 10px;
+}
+
+p
+{
+    user-select: none;
+    pointer-events: none;
+}
+
+@media only screen and (max-width: 768px)
+{
+    .content
+    {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .content .leftcart
+    {
+        flex-direction: column;
+        width: 90%;
+        padding-top: 5%;
+        padding-left: 5%;
+        margin-right: 10%;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .pagebar
+    {
+        display: none;
+    }
+
+    .botleft
+    {
+        margin-right: 10%;
+    }
+
+    .content .rightcart
+    {
+        width: 90%;
+        padding-top: 5%;
+        margin-bottom: 20px;
+        justify-content: center;
+    }
+
+    .content .rightcart .redbox
+    {
+        width: 100%;
+        height: auto;
+    }
+
+}

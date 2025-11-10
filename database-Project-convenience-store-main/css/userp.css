@@ -1,0 +1,292 @@
+html, body
+{
+    display: flex;
+    flex-direction: row;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    width: 100vw;
+    background-color: #FFF6E0;
+}
+
+body p
+{
+    font-family: arial;
+}
+
+.pagebar
+{
+    display: flex;
+    flex-direction: column;
+    width: 150px;
+    height: 100vh;
+    background-color: #36454F;
+    color: #AEE6E5;
+    justify-content: space-around;
+    align-items: center;
+}
+
+.content
+{
+    display: flex;
+    flex-direction: row;
+    min-width: 0;
+    flex-grow: 1;
+}
+
+.rightside
+{
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    box-sizing: border-box;
+    padding: 2%;
+}
+
+.topright
+{
+    display: flex;
+    flex-direction: row;
+    background-color: #8AAAB9;
+    width: 100%;
+    height: 100px;
+    justify-content: space-around;
+    border-radius: 10px;
+    color: #E3C4B6;
+    flex-shrink: 0;
+    align-items: center;
+}
+
+#namedate
+{
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    margin-left: 2%;
+}
+
+#namedate p
+{
+    margin: 3%;
+    white-space: nowrap;
+}
+
+#search
+{
+    margin-left: 40%;
+    background-color: #E3C4B6;
+}
+
+#noti
+{
+    margin-left: 5%;
+    margin-right: 5%;
+}
+
+#profile
+{
+    margin-right: 3%;
+}
+
+.botright
+{
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    background-color: white;
+    width: 100%;
+    flex-grow: 1;
+    overflow-y: auto;
+    margin-top: 30px;
+    padding-left: 4%;
+    padding-right: 4%;
+    padding-top: 2.5%;
+    border-radius: 10px;
+}
+
+#ne
+{
+    display: flex;
+    flex-direction: row;
+}
+
+#text1
+{
+   display: flex;
+   flex-direction: column;
+   gap: 0;
+   margin-left: 5px;
+}
+
+#text1 p
+{
+    margin: 10px;
+}
+
+.userpro
+{
+    display: flex;
+    flex-direction: column;
+}
+
+.nameemail
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+#edit 
+{
+  background-color: #da8888;
+  border-radius: 10px;
+  border-style: none;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  display: inline-block;
+  font-family: "Farfetch Basis","Helvetica Neue",Arial,sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  margin: 0;
+  max-width: none;
+  min-height: 44px;
+  min-width: 10px;
+  outline: none;
+  overflow: hidden;
+  padding: 9px 15px 8px;
+  position: relative;
+  text-align: center;
+  text-transform: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  width: 90px;
+  height: 40px;
+}
+
+#edit:not(:disabled):hover{
+  outline: 0;
+  background: #cb7e7e;
+}
+
+.fullnick
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+}
+
+#fullname
+{
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+}
+
+#nickname
+{
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+}
+
+.gendercountry
+{
+    display: flex;
+    flex-direction: row;
+    justify-content: start;
+}
+
+#gender
+{
+    display: flex;
+    flex-direction: column;
+    width: 50%;
+    padding-right: 2%;
+    box-sizing: border-box;
+}
+
+#country
+{
+    display: flex;
+    flex-direction: column;
+    width: 38vw;
+}
+
+.langtime
+{
+    display: flex;
+    flex-direction: row;
+}
+
+#language
+{
+    display: flex;
+    flex-direction: column;
+    width: 48%;
+    margin-right: 2%;
+}
+
+#timezone
+{
+    display: flex;
+    flex-direction: column;
+    width: 48%;
+}
+
+.addemail
+{
+    display: flex;
+    flex-direction: column;
+    margin-top: 5px;
+}
+
+input[type="text"]
+{
+    box-sizing: border-box;
+    width: 95%; 
+    height: 40px; 
+    border-radius: 10px; 
+    border: none; 
+    background-color: #d9d9d9; 
+    caret-color: darkgrey;
+    padding-left: 10px;
+}
+
+#addemail
+{
+  background-color: #da8888;
+  border-radius: 10px;
+  border-style: none;
+  box-sizing: border-box;
+  color: #fff;
+  cursor: pointer;
+  display: inline-block;
+  font-family: "Farfetch Basis","Helvetica Neue",Arial,sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.5;
+  margin: 0;
+  max-width: none;
+  min-height: 44px;
+  min-width: 10px;
+  outline: none;
+  overflow: hidden;
+  padding: 9px 15px 8px;
+  position: relative;
+  text-align: center;
+  text-transform: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: manipulation;
+  width: auto;
+  height: 40px;
+}
+
+#addemail:not(:disabled):hover{
+  outline: 0;
+  background: #cb7e7e;
+}
