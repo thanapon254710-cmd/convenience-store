@@ -7,7 +7,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // 1. Get and SECURELY sanitize product details
     $name = $_POST['product_name'] ?? 'Unknown Product';
     // CRITICAL FIX 2: Use filter_var for robust float sanitization/validation
-    $price = filter_var($_POST['product_price'] ?? 0.00, FILTER_VALIDATE_FLOAT);
+    $priceRaw = filter_var($_POST['product_price'] ?? 0.00, FILTER_VALIDATE_FLOAT);
+    $price = round((float)($priceRaw !== false ? (float)$priceRaw :0.00),2);
     $action = $_POST['action_type'] ?? 'add_to_cart'; 
 
     // Initialize the cart array if it doesn't exist
@@ -16,20 +17,23 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // --- Quantity Management Fix: Check if the product is ALREADY in the cart ---
-    $found = false;
+    $foundIndex = null;
     foreach ($_SESSION['cart'] as $key => &$item) {
         // Compare by name AND price for a unique match
-        if ($item['name'] === $name && $item['price'] === $price) {
+        $item['quantity'] = isset($item['quantity']) ? $item['quantity'] : 1;
+        $item['price'] = round(((float)$item['price']), 2);
+
+        if ($item['name'] === $name && abs($item['price'] - round($price, 2)) < 0.01) {
             // Product found: increment quantity
-            $item['quantity'] = ($item['quantity'] ?? 1) + 1;
-            $found = true;
+            $item['quantity'] += 1;
+            $foundIndex = $key;
             break;
         }
     }
     unset($item); // Remove reference
 
     // If the product was NOT found, add it as a new item with quantity 1
-    if (!$found) {
+    if ($foundIndex === null) {
         $_SESSION['cart'][] = [
             'name' => $name,
             'price' => $price,
@@ -39,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // 4. Redirect the user (Post-Redirect-Get pattern)
     if ($action === 'buy_now') {
-        header("Location: checkout.php"); 
+        header("Location: cart.php"); 
     } else {
         header("Location: HOME.php"); 
     }

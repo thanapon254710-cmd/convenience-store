@@ -30,7 +30,7 @@ $baseProducts = [
  'name' => 'Fresh Lettuce Head',
  'price' => 2.25,
  'rating' => '4.7',
-'image' => 'asset/lettuce.png'
+ 'image' => 'asset/lettuce.png'
  ],
  [
  'name' => 'Assorted Gummy Bears',
@@ -51,8 +51,11 @@ $popularProducts = array_merge(
 
 // Calculate total cart price
 // Uses the null coalescing operator (?? []) to safely handle empty carts
-$cartTotal = array_sum(array_column($_SESSION['cart'] ?? [], 'price'));
-
+$cart = $_SESSION['cart'] ?? [];
+$cartTotal = array_sum(array_map(function($i) {
+    $qty = isset($i['quantity']) ? (int)$i['quantity'] : 1;
+    return ((float)$i['price']) * $qty;
+}, $cart));
 ?>
 <!doctype html>
 <html lang="en">
@@ -105,11 +108,9 @@ $cartTotal = array_sum(array_column($_SESSION['cart'] ?? [], 'price'));
                 <nav class="flex-1">
                     <ul class="space-y-3">
                         <!--Tab Bar-->
-                        <li><a href="HOME.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">🏠</span><span class="text-sm font-medium">Home</span></a></li>
-                        <!-- <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">🔎</span><span class="text-sm font-medium">Explore</span></a></li> -->
+                        <li class="bg-red-50 rounded-lg"><a href="HOME.php" class="flex items-center gap-3 px-2 py-2 rounded-lg text-primary"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-primary">🏠</span><span class="text-sm font-medium">Home</span></a></li>
                         <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">❤️</span><span class="text-sm font-medium">Wishlist </span></a></li>
                         <li><a href="cart.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">🛒</span><span class="text-sm font-medium">Cart</span></a></li>
-                        <!-- <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💳  </span><span class="text-sm font-medium">Selling</span></a></li> -->
                         <li><a href="userpage.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">👤</span><span class="text-sm font-medium">Profile</span></a></li>
                         <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">📜</span><span class="text-sm font-medium">Preach History</span></a></li>
                         <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💬</span><span class="text-sm font-medium">Contact us</span></a></li>
@@ -274,16 +275,18 @@ $cartTotal = array_sum(array_column($_SESSION['cart'] ?? [], 'price'));
                                     <?php if (empty($_SESSION['cart'])): ?>
                                         <p class="text-sm opacity-90">Your cart is empty.</p>
                                     <?php else: ?>
-                                        <?php foreach ($_SESSION['cart'] as $index => $item): ?>
+                                        <?php foreach ($_SESSION['cart'] as $index => $item): 
+                                            $qty = isset($item['quantity']) ? $item['quantity'] : 1;
+                                            $itemname = htmlspecialchars($item['name']);
+                                        ?>
                                             <div class="flex items-center justify-between text-sm">
-                                                <span class="truncate pr-2"><?= htmlspecialchars($item['name']) ?></span>
+                                                <span class="truncate pr-2"><?= $itemname ?><?= $qty > 1 ? " x{$qty}" : "" ?></span>
                                                 <div class="flex items-center gap-2">
-                                                    <span>$<?= number_format($item['price'], 2) ?></span>
-                                                    
-                                                    <a href="REMOVEFROMCART.php?index=<?= $index ?>" 
-                                                        class="text-xs text-white/70 hover:text-white leading-none">
-                                                        [x]
-                                                    </a>
+                                                    <span>$<?= number_format($item['price']*$qty, 2) ?></span>
+                                                    <a href="REMOVEFROMCART.php?one=<?= $index ?>" 
+                                                        class="text-xs text-white/70 hover:text-white leading-none">[-]</a>
+                                                    <a href="REMOVEFROMCART.php?all=<?= $index ?>" 
+                                                        class="text-xs text-white/70 hover:text-white leading-none">[x]</a>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
