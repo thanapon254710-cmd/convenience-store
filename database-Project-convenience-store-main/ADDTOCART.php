@@ -16,34 +16,41 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $_SESSION['cart'] = [];
     }
 
-    // --- Quantity Management Fix: Check if the product is ALREADY in the cart ---
-    $foundIndex = null;
-    foreach ($_SESSION['cart'] as $key => &$item) {
-        // Compare by name AND price for a unique match
-        $item['quantity'] = isset($item['quantity']) ? $item['quantity'] : 1;
-        $item['price'] = round(((float)$item['price']), 2);
+    if ($action !== 'buy_now') {
+        // --- Quantity Management Fix: Check if the product is ALREADY in the cart ---
+        $foundIndex = null;
+        foreach ($_SESSION['cart'] as $key => &$item) {
+            // Compare by name AND price for a unique match
+            $item['quantity'] = isset($item['quantity']) ? $item['quantity'] : 1;
+            $item['price'] = round(((float)$item['price']), 2);
 
-        if ($item['name'] === $name && abs($item['price'] - round($price, 2)) < 0.01) {
-            // Product found: increment quantity
-            $item['quantity'] += 1;
-            $foundIndex = $key;
-            break;
+            if ($item['name'] === $name && abs($item['price'] - round($price, 2)) < 0.01) {
+                // Product found: increment quantity
+                $item['quantity'] += 1;
+                $foundIndex = $key;
+                break;
+            }
         }
-    }
-    unset($item); // Remove reference
+        unset($item); // Remove reference
 
-    // If the product was NOT found, add it as a new item with quantity 1
-    if ($foundIndex === null) {
-        $_SESSION['cart'][] = [
-            'name' => $name,
-            'price' => $price,
-            'quantity' => 1
-        ];
+        // If the product was NOT found, add it as a new item with quantity 1
+        if ($foundIndex === null) {
+            $_SESSION['cart'][] = [
+                'name' => $name,
+                'price' => $price,
+                'quantity' => 1
+            ];
+        }
     }
 
     // 4. Redirect the user (Post-Redirect-Get pattern)
     if ($action === 'buy_now') {
-        header("Location: cart.php"); 
+        $_SESSION['buy_now_item'] = [
+            'name'=> $name,
+            'price'=> $price,
+            'quantity' => 1
+        ];
+        header("Location: checkout.php"); 
     } else {
         header("Location: HOME.php"); 
     }

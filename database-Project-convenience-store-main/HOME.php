@@ -110,7 +110,7 @@ $cartTotal = array_sum(array_map(function($i) {
                         <!--Tab Bar-->
                         <li class="bg-red-50 rounded-lg"><a href="HOME.php" class="flex items-center gap-3 px-2 py-2 rounded-lg text-primary"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-primary">🏠</span><span class="text-sm font-medium">Home</span></a></li>
                         <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">❤️</span><span class="text-sm font-medium">Wishlist </span></a></li>
-                        <li><a href="cart.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">🛒</span><span class="text-sm font-medium">Cart</span></a></li>
+                        <li><a href="checkout.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💳</span><span class="text-sm font-medium">Checkout</span></a></li>
                         <li><a href="userpage.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">👤</span><span class="text-sm font-medium">Profile</span></a></li>
                         <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">📜</span><span class="text-sm font-medium">Preach History</span></a></li>
                         <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💬</span><span class="text-sm font-medium">Contact us</span></a></li>
@@ -200,8 +200,8 @@ $cartTotal = array_sum(array_map(function($i) {
                                             <input type="hidden" name="product_price" value="<?= $heroProduct['price'] ?>">
                                             <input type="hidden" name="action_type" value="buy_now">
                                             
-                                            <button type="submit" class="bg-primary text-white px-4 py-2 rounded-md text-sm font-semibold shadow hover:bg-accent transition">
-                                                <a href="cart.php">Buy Now</a>
+                                            <button type="submit" name="buy_now" class="bg-primary text-white px-4 py-2 rounded-md text-sm font-semibold shadow hover:bg-accent transition">
+                                                Buy Now
                                             </button>
                                         </form>
 
@@ -282,11 +282,13 @@ $cartTotal = array_sum(array_map(function($i) {
                                             <div class="flex items-center justify-between text-sm">
                                                 <span class="truncate pr-2"><?= $itemname ?><?= $qty > 1 ? " x{$qty}" : "" ?></span>
                                                 <div class="flex items-center gap-2">
-                                                    <span>$<?= number_format($item['price']*$qty, 2) ?></span>
-                                                    <a href="REMOVEFROMCART.php?one=<?= $index ?>" 
-                                                        class="text-xs text-white/70 hover:text-white leading-none">[-]</a>
-                                                    <a href="REMOVEFROMCART.php?all=<?= $index ?>" 
-                                                        class="text-xs text-white/70 hover:text-white leading-none">[x]</a>
+                                                    <span>$<?= number_format($item['price']*$qty, decimals: 2) ?></span>
+                                                    <a href="ADJUSTCART.php?one=<?= $index ?>" 
+                                                        class="text-s text-white/90 hover:text-white leading-none">[−]</a>
+                                                    <a href="ADJUSTCART.php?increase=<?= $index ?>" 
+                                                        class="text-s text-white/90 hover:text-white leading-none">[＋]</a>
+                                                    <a href="ADJUSTCART.php?all=<?= $index ?>" 
+                                                        class="text-s text-white/90 hover:text-white leading-none">[×]</a>
                                                 </div>
                                             </div>
                                         <?php endforeach; ?>
@@ -299,7 +301,7 @@ $cartTotal = array_sum(array_map(function($i) {
                                     <span>$<?= number_format($cartTotal, 2) ?></span>
                                 </div>
 
-                                <a href="cart.php" class="block text-center mt-3 bg-white text-primary text-sm font-semibold px-3 py-2 rounded-md shadow hover:bg-gray-100 transition">
+                                <a href="checkout.php" class="block text-center mt-3 bg-white text-primary text-sm font-semibold px-3 py-2 rounded-md shadow hover:bg-gray-100 transition">
                                     Proceed to Checkout
                                 </a>
                             </div>
