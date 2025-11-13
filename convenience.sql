@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Oct 28, 2025 at 05:54 PM
+-- Generation Time: Nov 13, 2025 at 05:25 PM
 -- Server version: 5.7.24
 -- PHP Version: 8.2.14
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `convenience`
+-- Database: `convenience_store`
 --
 
 DELIMITER $$
@@ -45,7 +45,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `redeem_coupon` (IN `p_coupon_code` 
     -- Step 1: Fetch coupon details
     SELECT discount_percent, min_purchase, expiry_date, status
     INTO v_discount, v_min_purchase, v_expiry, v_status
-    FROM coupons
+    FROM coupon
     WHERE coupon_code = p_coupon_code
     Limit 1;
 
@@ -76,7 +76,7 @@ CREATE DEFINER=`root`@`localhost` PROCEDURE `redeem_coupon` (IN `p_coupon_code` 
         WHERE order_id = p_order_id;
 
         -- Step 5: Mark coupon as used
-        UPDATE coupons
+        UPDATE coupon
         SET status = 'Redeemed'
         WHERE coupon_code = p_coupon_code;
     END IF;
@@ -146,7 +146,7 @@ DELIMITER ;
 
 CREATE TABLE `orders` (
   `order_id` int(11) NOT NULL,
-  `user_id` int(11) DEFAULT NULL,
+  `user_id` bigint(20) DEFAULT NULL,
   `order_date` date DEFAULT NULL,
   `total_amount` decimal(8,2) DEFAULT NULL,
   `payment_type` varchar(20) DEFAULT NULL,
@@ -223,7 +223,7 @@ DELIMITER ;
 --
 
 CREATE TABLE `users` (
-  `user_id` int(11) NOT NULL,
+  `user_id` bigint(20) NOT NULL,
   `username` varchar(50) DEFAULT NULL,
   `password` varchar(100) DEFAULT NULL,
   `email` varchar(100) DEFAULT NULL,
@@ -285,21 +285,21 @@ ALTER TABLE `users`
 -- Constraints for table `orderdetails`
 --
 ALTER TABLE `orderdetails`
-  ADD CONSTRAINT `fk_orderdetails_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_orderdetails_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`);
+  ADD CONSTRAINT `fk_orderdetails_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_orderdetails_product` FOREIGN KEY (`product_id`) REFERENCES `products` (`product_id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `orders`
 --
 ALTER TABLE `orders`
-  ADD CONSTRAINT `fk_orders_coupon` FOREIGN KEY (`coupon_id`) REFERENCES `coupons` (`coupon_id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fk_orders_coupon` FOREIGN KEY (`coupon_id`) REFERENCES `coupons` (`coupon_id`) ON DELETE SET NULL ON UPDATE CASCADE,
+  ADD CONSTRAINT `fk_orders_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`user_id`) ON UPDATE CASCADE;
 
 --
 -- Constraints for table `payments`
 --
 ALTER TABLE `payments`
-  ADD CONSTRAINT `fk_payments_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE CASCADE;
+  ADD CONSTRAINT `fk_payments_order` FOREIGN KEY (`order_id`) REFERENCES `orders` (`order_id`) ON DELETE CASCADE ON UPDATE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
