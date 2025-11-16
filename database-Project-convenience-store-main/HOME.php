@@ -4,60 +4,64 @@ session_start();
 // --- PRODUCT DATA ARRAYS ---
 // Define the Hero Product data
 $heroProduct = [
- 'name' => 'Premium Chocolate Bar',
- 'price' => 45.50, // Use numeric format
- 'rating' => '5.0',
- 'reviews' => '200+',
- 'detail' => 'Rich, dark chocolate with sea salt flakes.',
- 'image' => 'asset/chocolate.png' // Ensure this path is correct
+    'id'     => 'hero_chocolate',
+    'name'   => 'Premium Chocolate Bar',
+    'price'  => 45.50, // Use numeric format
+    'rating' => '5.0',
+    'reviews'=> '200+',
+    'detail' => 'Rich, dark chocolate with sea salt flakes.',
+    'image'  => 'asset/chocolate.png' // Ensure this path is correct
 ];
 
 // Define the Popular Product data 
 $baseProducts = [
- [
- 'name' => 'Organic Fresh Milk',
- 'price' => 3.50,
- 'rating' => '4.9',
- 'image' => 'asset/milk.png'
-],
- [
- 'name' => 'Crunchy Potato Chips',
- 'price' => 1.99,
- 'rating' => '4.5',
- 'image' => 'asset/chips.png'
- ],
- [
- 'name' => 'Fresh Lettuce Head',
- 'price' => 2.25,
- 'rating' => '4.7',
- 'image' => 'asset/lettuce.png'
- ],
- [
- 'name' => 'Assorted Gummy Bears',
- 'price' => 4.00,
- 'rating' => '4.6',
- 'image' => 'asset/gummy.png'
- ],
+    [
+        'name' => 'Organic Fresh Milk',
+        'price' => 3.50,
+        'rating' => '4.9',
+        'image' => 'asset/milk.png'
+    ],
+    [
+        'name' => 'Crunchy Potato Chips',
+        'price' => 1.99,
+        'rating' => '4.5',
+        'image' => 'asset/chips.png'
+    ],
+    [
+        'name' => 'Fresh Lettuce Head',
+        'price' => 2.25,
+        'rating' => '4.7',
+        'image' => 'asset/lettuce.png'
+    ],
+    [
+        'name' => 'Assorted Gummy Bears',
+        'price' => 4.00,
+        'rating' => '4.6',
+        'image' => 'asset/gummy.png'
+    ],
 ];
 
 // --- EXTENDED PRODUCT LIST (For 16 items) ---
-$popularProducts = array_merge(
-    $baseProducts, 
-    $baseProducts, 
-    $baseProducts, 
-    $baseProducts // Duplicated 4 times to get 16 items (4 * 4)
-);
-
+// give each card a UNIQUE id so hearts don’t affect each other
+$popularProducts = [];
+$counter = 1;
+foreach (array_merge($baseProducts, $baseProducts, $baseProducts, $baseProducts) as $p) {
+    $p['id'] = 'p' . $counter;
+    $popularProducts[] = $p;
+    $counter++;
+}
 
 // Calculate total cart price
-// Uses the null coalescing operator (?? []) to safely handle empty carts
 $cart = $_SESSION['cart'] ?? [];
 $cartTotal = array_sum(array_map(function($i) {
     $qty = isset($i['quantity']) ? (int)$i['quantity'] : 1;
     return ((float)$i['price']) * $qty;
 }, $cart));
+
+// --- WISHLIST (SESSION) ---
+$wishlist = $_SESSION['wishlist'] ?? [];
 ?>
-<!doctype html>
+<!Doctype html>
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -108,16 +112,15 @@ $cartTotal = array_sum(array_map(function($i) {
                 <nav class="flex-1">
                     <ul class="space-y-3">
                         <!--Tab Bar-->
-                        <li class="bg-red-50 rounded-lg"><a href="HOME.php" class="flex items-center gap-3 px-2 py-2 rounded-lg text-primary"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-primary">🏠</span><span class="text-sm font-medium">Home</span></a></li>
-                        <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">❤️</span><span class="text-sm font-medium">Wishlist </span></a></li>
+                        <li class="bg-red-50 rounded-lg"><a href="HOME.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-primary">🏠</span><span class="text-sm font-medium">Home</span></a></li>
+                        <li><a href="WISHLIST.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">❤️</span><span class="text-sm font-medium">Wishlist </span></a></li>
                         <li><a href="checkout.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💳</span><span class="text-sm font-medium">Checkout</span></a></li>
                         <li><a href="userpage.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">👤</span><span class="text-sm font-medium">Profile</span></a></li>
-                        <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">📜</span><span class="text-sm font-medium">Preach History</span></a></li>
-                        <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💬</span><span class="text-sm font-medium">Contact us</span></a></li>
-                        <li><a href="#" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">⚙️</span><span class="text-sm font-medium">Setting</span></a></li>
+                        <li><a href="preach.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">📜</span><span class="text-sm font-medium">Preach History</span></a></li>
+                        <li><a href="contact.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💬</span><span class="text-sm font-medium">Contact us</span></a></li>
+                        <li><a href="setting.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">⚙️</span><span class="text-sm font-medium">Setting</span></a></li>
                     </ul>
                 </nav>
-
                 <div class="mt-4"></div>
                 <div class="mt-6">
                     <div class="bg-gradient-to-br from-red-200 to-red-400 text-white rounded-2xl p-4 shadow-soft-lg relative overflow-hidden">
@@ -185,6 +188,7 @@ $cartTotal = array_sum(array_map(function($i) {
                                     </div>
 
                                     <div class="mt-4 flex items-center gap-3">
+                                        <!-- Add to cart -->
                                         <form id="hero-add-form" action="ADDTOCART.php" method="POST">
                                             <input type="hidden" name="product_name" value="<?= htmlspecialchars($heroProduct['name']) ?>">
                                             <input type="hidden" name="product_price" value="<?= $heroProduct['price'] ?>">
@@ -195,6 +199,7 @@ $cartTotal = array_sum(array_map(function($i) {
                                             </button>
                                         </form>
 
+                                        <!-- Buy now -->
                                         <form action="ADDTOCART.php" method="POST">
                                             <input type="hidden" name="product_name" value="<?= htmlspecialchars($heroProduct['name']) ?>">
                                             <input type="hidden" name="product_price" value="<?= $heroProduct['price'] ?>">
@@ -205,12 +210,29 @@ $cartTotal = array_sum(array_map(function($i) {
                                             </button>
                                         </form>
 
-                                        <button class="ml-2 w-10 h-10 flex items-center justify-center border rounded-lg text-gray-600 hover:bg-red-50 hover:text-red-600 transition"><a href="#">❤</a></button>
+                                        <!-- Wishlist heart (hero) -->
+                                        <?php $heroInWishlist = isset($wishlist[$heroProduct['id']]); ?>
+                                        <form action="WISHLIST_ACTION.php" method="POST" class="inline-block">
+                                            <input type="hidden" name="product_id" value="<?= htmlspecialchars($heroProduct['id']) ?>">
+                                            <input type="hidden" name="product_name" value="<?= htmlspecialchars($heroProduct['name']) ?>">
+                                            <input type="hidden" name="product_price" value="<?= $heroProduct['price'] ?>">
+                                            <input type="hidden" name="product_image" value="<?= htmlspecialchars($heroProduct['image']) ?>">
+                                            <input type="hidden" name="product_rating" value="<?= htmlspecialchars($heroProduct['rating']) ?>">
+
+                                            <button type="submit" name="action" value="toggle"
+                                                class="ml-2 w-10 h-10 flex items-center justify-center border rounded-lg transition <?=
+                                                    $heroInWishlist ? 'bg-red-500 text-white hover:bg-red-600' : 'text-gray-600 hover:bg-red-50 hover:text-red-600'
+                                                ?>">
+                                                <i class="<?= $heroInWishlist ? 'fa-solid' : 'fa-regular' ?> fa-heart"></i>
+                                            </button>
+                                        </form>
 
                                     </div>
-                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        <!-- Popular products -->
                         <section class="mb-8">
                             <div class="flex items-center justify-between mb-4">
                                 <h2 class="text-lg font-semibold">Explore The Popular Product</h2>
@@ -219,27 +241,52 @@ $cartTotal = array_sum(array_map(function($i) {
 
                             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                                 
-                                <?php foreach ($popularProducts as $index => $product): ?>
+                                <?php foreach ($popularProducts as $index => $product): 
+                                    $inWishlist = isset($wishlist[$product['id']]);
+                                ?>
                                     <div class="bg-white rounded-xl p-4 shadow-card flex flex-col">
                                         <div class="img-placeholder w-full h-36 rounded-lg mb-3 bg-gray-100">
                                             <img src="<?= $product['image'] ?>" alt="<?= $product['name'] ?>" class="w-full h-full object-cover rounded-lg" />
                                         </div>
                                         <div class="flex-1">
-                                            <div class="text-sm font-medium"><a href="Product_description.php"><?= $product['name'] . " (" . ($index + 1) . ")" ?></a></div> 
+                                            <div class="text-sm font-medium">
+                                                <a href="Product_description.php">
+                                                    <?= $product['name'] . " (" . ($index + 1) . ")" ?>
+                                                </a>
+                                            </div> 
                                             <div class="text-xs text-gray-500">$<?= number_format($product['price'], 2) ?></div>
                                         </div>
                                         <div class="mt-3 flex items-center justify-between">
                                             <div class="text-xs text-green-500">★ <?= $product['rating'] ?></div>
                                             
-                                            <form action="ADDTOCART.php" method="POST">
-                                                <input type="hidden" name="product_name" value="<?= htmlspecialchars($product['name']) ?>">
-                                                <input type="hidden" name="product_price" value="<?= $product['price'] ?>">
-                                                <input type="hidden" name="action_type" value="add_to_cart">
+                                            <div class="flex items-center gap-2">
+                                                <!-- Add to cart -->
+                                                <form action="ADDTOCART.php" method="POST" class="inline-block">
+                                                    <input type="hidden" name="product_name" value="<?= htmlspecialchars($product['name']) ?>">
+                                                    <input type="hidden" name="product_price" value="<?= $product['price'] ?>">
+                                                    <input type="hidden" name="action_type" value="add_to_cart">
 
-                                                <button type="submit" class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-200 transition">
-                                                    ＋
-                                                </button>
-                                            </form>
+                                                    <button type="submit" class="w-8 h-8 rounded-full bg-red-100 text-red-600 flex items-center justify-center hover:bg-red-200 transition">
+                                                        ＋
+                                                    </button>
+                                                </form>
+
+                                                <!-- Wishlist heart -->
+                                                <form action="WISHLIST_ACTION.php" method="POST" class="inline-block">
+                                                    <input type="hidden" name="product_id" value="<?= htmlspecialchars($product['id']) ?>">
+                                                    <input type="hidden" name="product_name" value="<?= htmlspecialchars($product['name']) ?>">
+                                                    <input type="hidden" name="product_price" value="<?= $product['price'] ?>">
+                                                    <input type="hidden" name="product_image" value="<?= htmlspecialchars($product['image']) ?>">
+                                                    <input type="hidden" name="product_rating" value="<?= htmlspecialchars($product['rating']) ?>">
+
+                                                    <button type="submit" name="action" value="toggle"
+                                                        class="w-8 h-8 flex items-center justify-center rounded-full border text-xs transition <?=
+                                                            $inWishlist ? 'bg-red-500 text-white hover:bg-red-600' : 'text-gray-500 hover:bg-red-50 hover:text-red-600'
+                                                        ?>">
+                                                        <i class="<?= $inWishlist ? 'fa-solid' : 'fa-regular' ?> fa-heart"></i>
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
                                     </div>
                                 <?php endforeach; ?>
@@ -266,11 +313,14 @@ $cartTotal = array_sum(array_map(function($i) {
                         
                     </main>
 
+                    <!-- CART SIDEBAR -->
                     <aside class="col-span-12 lg:col-span-4">
-                        <div class="sticky top-6 space-y-6">
-                            
+                        <div class="sticky top-6 space-y-6"> 
                             <div class="bg-gradient-to-br from-red-200 to-red-400 text-white rounded-2xl p-4 shadow-soft-lg">
-                                <div class="text-lg font-semibold mb-2">Shopping Cart</div>
+                                <div class="flex items-center justify-between mb-2">
+                                <div class="text-lg font-semibold">Shopping Cart</div>
+                                <a href="CLEARCART.php" class="text-xs text-white/90 hover:text-white">[Delete All]</a>
+                            </div>
                                 <div class="space-y-2 max-h-40 overflow-y-auto pr-1">
                                     <?php if (empty($_SESSION['cart'])): ?>
                                         <p class="text-sm opacity-90">Your cart is empty.</p>
@@ -321,26 +371,28 @@ $cartTotal = array_sum(array_map(function($i) {
                                         ["name" => "Product 3", "details" => "Details", "price" => 45.5],
                                         ["name" => "Product 4", "details" => "Details", "price" => 45.5],
                                         ["name" => "Product 5", "details" => "Details", "price" => 45.5],
-                                        ];
+                                    ];
 
-                                        foreach ($products as $p) {
+                                    foreach ($products as $p) {
                                         echo " 
                                         <div class='flex items-center gap-3'>
                                             <div class='w-12 h-12 img-placeholder rounded-md bg-gray-100'></div>
                                             <div class='flex-1'>
-                                                <div class='text-sm font-medium'><a href='Product_description.php'>{$p['name']}</a></div>
+                                                <div class='text-sm font-medium'><a href=\"Product_description.php\">{$p['name']}</a></div>
                                                 <div class='text-xs text-gray-400'>{$p['details']}</div>
                                             </div>
                                             <div class='text-sm text-gray-500'>\${$p['price']}</div>
                                         </div>";
-                                        }
+                                    }
+                                    
                                 ?>
+
                                 </div>
                             </div>
                         </div>
                     </aside>
                 </div>
-                </div>
+            </div>
         </div>
     </div>
      <script src="script.js"></script>

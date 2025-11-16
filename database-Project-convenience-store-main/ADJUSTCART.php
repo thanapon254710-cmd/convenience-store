@@ -1,5 +1,6 @@
 <?php
 // CRITICAL FIX 1: Start output buffering
+ob_start();
 session_start();
 
 // Check if the request is a GET and if the 'index' parameter is present
