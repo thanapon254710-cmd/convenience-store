@@ -1,5 +1,6 @@
 <?php
 session_start();
+require_once("userconnect.php");
 
 // --- PRODUCT DATA ARRAYS ---
 // Define the Hero Product data

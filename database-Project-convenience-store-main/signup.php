@@ -1,3 +1,47 @@
+<?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
+
+session_start();
+require_once 'connect.php';
+
+$error = '';
+$success = '';
+
+if (isset($_POST['submit'])) {
+    $u  = $_POST['username'] ?? '';
+    $p  = $_POST['passwd'] ?? '';
+    $cp = $_POST['cpasswd'] ?? '';
+
+    // Basic validation
+    if ($u === '' || $p === '' || $cp === '') {
+        $error = "Please fill in all fields.";
+    } elseif ($p !== $cp) {
+        $error = "Passwords do not match.";
+    } else {
+        // Insert new user (role = Customer, points = 0)
+        $q = $mysqli->prepare(
+            "INSERT INTO users (username, password, email, phone_number, role, points) 
+             VALUES (?, ?, '', '', 'Customer', 0)"
+        );
+
+        if (!$q) {
+            $error = "Prepare failed: " . $mysqli->error;
+        } else {
+            $q->bind_param("ss", $u, $p); // <-- for now storing plain password
+            if ($q->execute()) {
+                $success = "Signup successful! You can now log in.";
+            } else {
+                $error = "Could not create account: " . $q->error;
+            }
+            $q->close();
+        }
+    header("Location: index.php");
+    }
+}
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -11,26 +55,20 @@
         <img class="logo logo--bgless" src="asset/2960679-2182.png" alt="The convenience store">
     </header>
     <main class="page">
-        
-    <?php 
-        // Using echo and Heredoc syntax (<<<EOT) is a good way to output large blocks of HTML 
-        // within PHP without needing to escape quotes repeatedly.
-        echo <<<EOT
-        <div class="card">
-            <h2>Signup</h2>
-            <label>Username</label>
-            <input type="text" placeholder="Enter your username" />
-            <label>Password</label>
-            <input type="password" placeholder="Enter your password" />
-            <label>Confirm Password</label>
-            <input type="password" placeholder="Confirm your password" />
-            
-            <a class="primary" href="index.php">Sign Up</a> 
-            <p class="small"><a href="index.php">Already have an account?</a></p>
-        </div>
-        EOT;
-    ?>
-
+        <form action="<?= $_SERVER['PHP_SELF'] ?>" method="POST">
+            <div class="card">
+                <h2>Signup</h2>
+                <label>Username</label>
+                <input type="text" name="username" placeholder="Enter your username" />
+                <label>Password</label>
+                <input type="password" name="passwd" placeholder="Enter your password" />
+                <label>Confirm Password</label>
+                <input type="password" name="cpasswd" placeholder="Confirm your password" />
+                
+                <button type="submit" name="submit" class="primary">Sign Up</button>
+                <p class="small"><a href="index.php">Already have an account?</a></p>
+            </div>
+        </form>
     </main>
 </body>
 </html>
