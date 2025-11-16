@@ -282,7 +282,7 @@ $cartTotal = array_sum(array_map(function($i) {
                                             <div class="flex items-center justify-between text-sm">
                                                 <span class="truncate pr-2"><?= $itemname ?><?= $qty > 1 ? " x{$qty}" : "" ?></span>
                                                 <div class="flex items-center gap-2">
-                                                    <span>$<?= number_format($item['price']*$qty, decimals: 2) ?></span>
+                                                    <span>$<?= number_format($item['price'] * $qty, 2) ?></span>
                                                     <a href="ADJUSTCART.php?one=<?= $index ?>" 
                                                         class="text-s text-white/90 hover:text-white leading-none">[−]</a>
                                                     <a href="ADJUSTCART.php?increase=<?= $index ?>" 
