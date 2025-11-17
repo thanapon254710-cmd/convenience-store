@@ -130,11 +130,9 @@ $cartTotal = array_sum(array_map(function($i) {
                                             </h3>
                                             
                                             <div class="flex items-center gap-2">
-                                                <div class="text-sm font-semibold text-green-500">
-                                                    ★ <?= htmlspecialchars($item['rating']) ?>
-                                                </div>
-                                                <p class="text-sm font-semibold <?= $item['in_stock'] ? 'text-green-600' : 'text-red-500'; ?> ml-2">
-                                                    — <?= $item['in_stock'] ? 'In Stock' : 'Out of Stock'; ?>
+                                                <p class="text-sm font-semibold 
+                                                    <?= $item['in_stock'] ? 'text-green-600' : 'text-red-500'; ?> ml-2"> 
+                                                    <?= $item['in_stock'] ? 'In Stock' : 'Out of Stock'; ?>
                                                 </p>
                                             </div>
                                             

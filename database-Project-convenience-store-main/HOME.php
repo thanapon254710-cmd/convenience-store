@@ -14,39 +14,34 @@ $heroProduct = [
     'image'  => 'asset/chocolate.png' // Ensure this path is correct
 ];
 
-// Define the Popular Product data 
-$baseProducts = [
-    [
-        'name' => 'Organic Fresh Milk',
-        'price' => 3.50,
-        'rating' => '4.9',
-        'image' => 'asset/milk.png'
-    ],
-    [
-        'name' => 'Crunchy Potato Chips',
-        'price' => 1.99,
-        'rating' => '4.5',
-        'image' => 'asset/chips.png'
-    ],
-    [
-        'name' => 'Fresh Lettuce Head',
-        'price' => 2.25,
-        'rating' => '4.7',
-        'image' => 'asset/lettuce.png'
-    ],
-    [
-        'name' => 'Assorted Gummy Bears',
-        'price' => 4.00,
-        'rating' => '4.6',
-        'image' => 'asset/gummy.png'
-    ],
-];
+// Collect 12 popular products from DB
+$q = "SELECT product_name, price, stock_qty, image_path
+      FROM products 
+      ORDER BY stock_qty DESC 
+      LIMIT 12";
+$result = $mysqli->query($q);
+
+if (!$result){
+    echo "Select failed. Error: " . $mysqli->error;
+    return false;
+}
+
+$baseProducts = [];
+
+while ($row = $result->fetch_assoc()) {
+    $baseProducts[] = [
+        'name'     => $row['product_name'],
+        'price'    => (float)$row['price'],
+        'quantity' => (int)$row['stock_qty'],
+        'image'    => $row['image_path'] ?? 'asset/default.png'
+    ];
+}
 
 // --- EXTENDED PRODUCT LIST (For 16 items) ---
 // give each card a UNIQUE id so hearts don’t affect each other
 $popularProducts = [];
 $counter = 1;
-foreach (array_merge($baseProducts, $baseProducts, $baseProducts, $baseProducts) as $p) {
+foreach ($baseProducts as $p) {
     $p['id'] = 'p' . $counter;
     $popularProducts[] = $p;
     $counter++;
@@ -258,9 +253,8 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                                             <div class="text-xs text-gray-500">$<?= number_format($product['price'], 2) ?></div>
                                         </div>
                                         <div class="mt-3 flex items-center justify-between">
-                                            <div class="text-xs text-green-500">★ <?= $product['rating'] ?></div>
                                             
-                                            <div class="flex items-center gap-2">
+                                            <div class="flex items-center gap-20">
                                                 <!-- Add to cart -->
                                                 <form action="ADDTOCART.php" method="POST" class="inline-block">
                                                     <input type="hidden" name="product_name" value="<?= htmlspecialchars($product['name']) ?>">
@@ -278,7 +272,6 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                                                     <input type="hidden" name="product_name" value="<?= htmlspecialchars($product['name']) ?>">
                                                     <input type="hidden" name="product_price" value="<?= $product['price'] ?>">
                                                     <input type="hidden" name="product_image" value="<?= htmlspecialchars($product['image']) ?>">
-                                                    <input type="hidden" name="product_rating" value="<?= htmlspecialchars($product['rating']) ?>">
 
                                                     <button type="submit" name="action" value="toggle"
                                                         class="w-8 h-8 flex items-center justify-center rounded-full border text-xs transition <?=
