@@ -9,14 +9,13 @@ $category = $_GET['category'] ?? null;
 $image = $_GET['image'] ?? 'asset/default.png';
 
 // Fetch related products (same category, different name)
-// Not Finish yet
 $relatedProducts = [];
 
 if ($category) {
     $q = $mysqli->prepare("
         SELECT product_id, product_name, price, image_path
         FROM products
-        WHERE product_name != ? AND category = ?
+        WHERE TRIM(product_name) != TRIM(?) AND category = ?
         LIMIT 5
     ");
     $q->bind_param('ss', $name, $category);
@@ -264,4 +263,5 @@ if ($category) {
         </section>
     </main>
 </body>
+
 </html>
