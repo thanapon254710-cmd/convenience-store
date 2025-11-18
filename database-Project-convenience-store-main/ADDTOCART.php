@@ -7,6 +7,7 @@ if (!isset($_SESSION['cart'])) {
 
 $name       = $_POST['product_name']  ?? null;
 $price      = isset($_POST['product_price']) ? (float)$_POST['product_price'] : 0;
+$image      = $_POST['product_image'] ?? 'asset/example-product-1.png';
 $actionType = $_POST['action_type']   ?? 'add_to_cart';
 $return     = $_POST['return']        ?? null;
 
@@ -24,11 +25,17 @@ if ($name) {
         $_SESSION['cart'][] = [
             'name'     => $name,
             'price'    => $price,
-            'quantity' => 1
+            'quantity' => 1,
+            'image'    => $image
         ];
     } else {
         $_SESSION['cart'][$foundIndex]['quantity'] =
             ($_SESSION['cart'][$foundIndex]['quantity'] ?? 1) + 1;
+
+        // make sure image is saved even if item already existed
+        if (!isset($_SESSION['cart'][$foundIndex]['image'])) {
+            $_SESSION['cart'][$foundIndex]['image'] = $image;
+        }
     }
 }
 
@@ -36,11 +43,7 @@ if ($name) {
 if ($actionType === 'buy_now') {
     $dest = 'checkout.php';
 } else {
-    if ($return) {
-        $dest = $return;        // e.g. WISHLIST.php
-    } else {
-        $dest = 'HOME.php';
-    }
+    $dest = $return ? $return : 'HOME.php';
 }
 
 header("Location: " . $dest);

@@ -59,7 +59,7 @@ $cartTotal = array_sum(array_map(function($i) {
                         <div class="text-lg font-semibold">Convenience<br/><span class="text-sm text-gray-500">Store</span></div>
                     </div>
                 </div>
-
+                
                 <nav class="flex-1">
                     <ul class="space-y-3">
                         <!--Tab Bar-->
@@ -72,20 +72,6 @@ $cartTotal = array_sum(array_map(function($i) {
                         <li><a href="setting.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">⚙️</span><span class="text-sm font-medium">Setting</span></a></li>
                     </ul>
                 </nav>
-
-                <div class="mt-6">
-                    <div class="bg-gradient-to-br from-red-200 to-red-400 text-white rounded-2xl p-4 shadow-soft-lg relative overflow-hidden">
-                        <div class="flex items-start gap-3">
-                            <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-2xl">＋</div>
-                            <div>
-                                <div class="text-sm font-semibold">Need Help</div>
-                                <p class="text-xs mt-1 opacity-90">Lorem Ipsum is simply dummy text of the printing industry.</p>
-                            </div>
-                        </div>
-                        <button class="mt-4 bg-white text-red-600 text-sm font-semibold px-3 py-2 rounded-md shadow">Customer Service</button>
-                        <div class="absolute -right-6 -bottom-8 w-40 h-40 rounded-full bg-white/10 transform rotate-12"></div>
-                    </div>
-                </div>
             </div>
         </aside>
 

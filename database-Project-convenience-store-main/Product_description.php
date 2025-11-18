@@ -1,3 +1,42 @@
+<?php
+session_start();
+require_once("userconnect.php");
+
+$id    = $_GET["id"];
+$name  = $_GET['name']  ?? 'Unknown Product';
+$price = $_GET['price'] ?? '0.00';
+$category = $_GET['category'] ?? null;
+$image = $_GET['image'] ?? 'asset/default.png';
+
+// Fetch related products (same category, different name)
+// Not Finish yet
+$relatedProducts = [];
+
+if ($category) {
+    $q = $mysqli->prepare("
+        SELECT product_id, product_name, price, image_path
+        FROM products
+        WHERE product_name != ? AND category = ?
+        LIMIT 5
+    ");
+    $q->bind_param('ss', $name, $category);
+    $q->execute();
+    $result = $q->get_result();
+    
+    while ($row = $result->fetch_assoc()) {
+        $relatedProducts[] = $row;
+    }
+    $q->close();
+}
+
+?>
+    <script>
+    alert(
+        "Category: <?= $category ?>\n\n" +
+        "Products:\n<?= implode('\n', array_column($relatedProducts, 'product_name')) ?>"
+        );
+    </script>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -86,28 +125,24 @@
         <div class="text-sm text-gray-500 mb-6">
             <a href="HOME.php" class="hover:text-primary">Home</a> / 
             <a href="#" class="hover:text-primary">Categories</a> / 
-            <a href="#" class="hover:text-primary">Fruits</a> / 
-            <span class="font-semibold">Pinnapple</span>
+            <a href="#" class="hover:text-primary"><?= $category ?></a> / 
+            <span class="font-semibold"><?= $name ?></span>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-10">
             
             <div class="lg:col-span-2 flex flex-col md:flex-row gap-8">
                 
-                <div class="bg-placeholder-bg flex-1 min-h-[400px] rounded-lg relative flex justify-center items-center overflow-hidden">
-                    <div class="image-shapes relative w-3/5 h-3/5">
-                        <div class="shape shape-1 bg-placeholder-fill"></div>
-                        <div class="shape shape-2 bg-placeholder-fill"></div>
-                        <div class="shape shape-3 bg-placeholder-fill"></div>
-                    </div>
+                <div class="flex-1 min-h-[400px] rounded-lg overflow-hidden flex justify-center items-center">
+                    <img src="<?= htmlspecialchars($image) ?>" class="w-full h-full object-contain">
                 </div>
 
                 <div class="flex-1 pt-4">
-                    <h2 class="text-3xl font-medium mb-4">Pinnapple</h2>
+                    <h2 class="text-3xl font-medium mb-4"><?= htmlspecialchars($name) ?></h2>
                     
                     <div class="pb-4 border-b border-gray-200 mb-4">
                         <span class="text-xl font-bold">Price</span>
-                        <span class="ml-4 text-xl">...</span> 
+                        <span class="ml-4 text-xl">$<?= number_format($price, 2) ?></span>
                     </div>
 
                     <ul class="list-none text-gray-600 mb-4">
@@ -130,12 +165,32 @@
                             <button class="bg-gray-100 px-3 py-2 text-lg hover:bg-gray-200 border-l border-gray-300">+</button>
                         </div>
                         
-                        <button class="bg-primary text-white font-bold px-6 py-2.5 rounded-md uppercase hover:bg-red-700 transition duration-150">
-                            ADD TO CART
-                        </button>
-                        <button class="border border-primary text-primary p-3 rounded-md hover:bg-primary/10 transition duration-150">
-                            <i class="fa-regular fa-heart"></i>
-                        </button>
+                        <!-- add to cart -->
+                        <form action="ADDTOCART.php" method="POST" class="inline-block">
+                            <input type="hidden" name="product_name"  value="<?= htmlspecialchars($name) ?>">
+                            <input type="hidden" name="product_price" value="<?= $price ?>">
+                            <input type="hidden" name="product_image" value="<?= htmlspecialchars($image) ?>">
+                            <input type="hidden" name="action_type"   value="add_to_cart">
+
+                            <button class="bg-primary text-white font-bold px-6 py-2.5 rounded-md uppercase hover:bg-red-700 transition duration-150">
+                                ADD TO CART
+                            </button>
+                        </form>
+
+                        <!-- wishlist -->
+                        <form action="WISHLIST_ACTION.php" method="POST" class="inline-block">
+                            <input type="hidden" name="product_id" value="<?= htmlspecialchars($product['id']) ?>">
+                            <input type="hidden" name="product_name" value="<?= htmlspecialchars($product['name']) ?>">
+                            <input type="hidden" name="product_price" value="<?= $product['price'] ?>">
+                            <input type="hidden" name="product_image" value="<?= htmlspecialchars($product['image']) ?>">
+
+                            <button type="submit" name="action" value="toggle"
+                                class="w-8 h-8 flex items-center justify-center rounded-full border text-xs transition <?=
+                                $inWishlist ? 'bg-red-500 text-white hover:bg-red-600' : 'text-gray-500 hover:bg-red-50 hover:text-red-600'
+                                ?>">
+                                <i class="<?= $inWishlist ? 'fa-solid' : 'fa-regular' ?> fa-heart"></i>
+                            </button>
+                        </form>
                     </div>
                 </div>
             </div>
@@ -144,15 +199,28 @@
                 <div class="bg-gradient-to-br from-red-200 to-red-400 text-white rounded-2xl p-5 shadow-soft-lg">
                     <h3 class="text-xl font-semibold mb-4 border-b border-white/50 pb-3">Your Cart</h3>
                     
-                    <div class="flex justify-between items-center pb-4 border-b border-dashed border-white/50 mb-4">
-                        <div class="flex items-center space-x-3">
-                            <div class="w-12 h-12 bg-white/30 rounded-md"></div>
-                            <div>
-                                <p class="font-semibold">Pinnapple</p>
-                                <p class="text-sm text-white/90">3 x Price</p>
+                    <div class="space-y-2 max-h-40 overflow-y-auto pr-1">
+                        <?php if (empty($_SESSION['cart'])): ?>
+                            <p class="text-sm opacity-90">Your cart is empty.</p>
+                        <?php else: ?>
+                        <?php foreach ($_SESSION['cart'] as $index => $item): 
+                            $qty = isset($item['quantity']) ? $item['quantity'] : 1;
+                            $itemname = htmlspecialchars($item['name']);
+                        ?>
+                        <div class="flex items-center justify-between text-sm">
+                            <span class="truncate pr-2"><?= $itemname ?><?= $qty > 1 ? " x{$qty}" : "" ?></span>
+                            <div class="flex items-center gap-2">
+                                <span>$<?= number_format($item['price'] * $qty, 2) ?></span>
+                                <a href="ADJUSTCART.php?one=<?= $index ?>" 
+                                    class="text-s text-white/90 hover:text-white leading-none">[−]</a>
+                                <a href="ADJUSTCART.php?increase=<?= $index ?>" 
+                                    class="text-s text-white/90 hover:text-white leading-none">[＋]</a>
+                                <a href="ADJUSTCART.php?all=<?= $index ?>" 
+                                    class="text-s text-white/90 hover:text-white leading-none">[×]</a>
                             </div>
                         </div>
-                        <span class="text-lg text-white/70 cursor-pointer hover:text-white">×</span>
+                        <?php endforeach; ?>
+                        <?php endif; ?>
                     </div>
 
                     <div class="flex justify-between font-bold pt-2">
@@ -161,9 +229,6 @@
                     </div>
 
                     <div class="flex space-x-3 mt-5">
-                        <button class="flex-1 py-3 text-sm font-bold border border-white bg-white text-primary rounded-md uppercase hover:bg-gray-100 transition duration-150">
-                            <a href="cart.php">VIEW CART</a>
-                        </button>
                         <button class="flex-1 py-3 text-sm font-bold bg-primary text-white rounded-md uppercase hover:bg-red-700 transition duration-150">
                             <a href="cart.php">CHECKOUT</a>
                         </button>
@@ -174,39 +239,29 @@
 
         <section class="mt-16 pb-12">
             <h2 class="text-xl font-medium mb-6">RELATED PRODUCTS</h2>
-            <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
-                
-                <div class="text-center">
-                    <div class="bg-placeholder-bg h-48 rounded-lg mb-3 relative flex justify-center items-center overflow-hidden">
-                        <div class="image-shapes relative w-3/5 h-3/5">
-                            <div class="shape shape-1 bg-placeholder-fill !w-10 !h-10"></div>
-                            <div class="shape shape-2 bg-placeholder-fill !w-8 !h-8"></div>
-                            <div class="shape shape-3 bg-placeholder-fill !w-12 !h-12"></div>
+
+            <?php if (!empty($relatedProducts)): ?>
+                <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6">
+                    <?php foreach ($relatedProducts as $rp): ?>
+                        <div class="text-center">
+                            <div class="bg-placeholder-bg h-48 rounded-lg mb-3 relative flex justify-center items-center overflow-hidden">
+                                <img src="<?= htmlspecialchars($rp['image_path'] ?? 'asset/default.png') ?>"
+                                     alt="<?= htmlspecialchars($rp['product_name']) ?>"
+                                     class="w-full h-full object-contain">
+                            </div>
+                            <p class="font-bold text-gray-800">
+                                <?= htmlspecialchars($rp['product_name']) ?>
+                            </p>
+                            <p class="text-sm text-gray-600">
+                                $<?= number_format($rp['price'], 2) ?>
+                            </p>
                         </div>
-                    </div>
-                    <p class="font-bold text-gray-800">Price</p>
+                    <?php endforeach; ?>
                 </div>
-
-                <div class="text-center">
-                    <div class="bg-placeholder-bg h-48 rounded-lg mb-3 relative flex justify-center items-center"></div>
-                    <p class="font-bold text-gray-800">Price</p>
-                </div>
-                <div class="text-center">
-                    <div class="bg-placeholder-bg h-48 rounded-lg mb-3 relative flex justify-center items-center"></div>
-                    <p class="font-bold text-gray-800">Price</p>
-                </div>
-                <div class="text-center">
-                    <div class="bg-placeholder-bg h-48 rounded-lg mb-3 relative flex justify-center items-center"></div>
-                    <p class="font-bold text-gray-800">Price</p>
-                </div>
-                <div class="text-center hidden lg:block">
-                    <div class="bg-placeholder-bg h-48 rounded-lg mb-3 relative flex justify-center items-center"></div>
-                    <p class="font-bold text-gray-800">Price</p>
-                </div>
-
-            </div>
+            <?php else: ?>
+                <p class="text-gray-500 text-sm">No related products in this category yet.</p>
+            <?php endif; ?>
         </section>
-
     </main>
 </body>
 </html>

@@ -46,32 +46,17 @@
                     </div>
 
                     <nav class="flex-1">
-                    <ul class="space-y-3">
-                        <!--Tab Bar-->
-                        <li><a href="HOME.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-primary">🏠</span><span class="text-sm font-medium">Home</span></a></li>
-                        <li><a href="WISHLIST.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">❤️</span><span class="text-sm font-medium">Wishlist </span></a></li>
-                        <li class="bg-red-50 rounded-lg"><a href="checkout.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💳</span><span class="text-sm font-medium">Checkout</span></a></li>
-                        <li><a href="userpage.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">👤</span><span class="text-sm font-medium">Profile</span></a></li>
-                        <li><a href="preach.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">📜</span><span class="text-sm font-medium">Preach History</span></a></li>
-                        <li><a href="contact.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💬</span><span class="text-sm font-medium">Contact us</span></a></li>
-                        <li><a href="setting.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">⚙️</span><span class="text-sm font-medium">Setting</span></a></li>
-                    </ul>
-                </nav>
-
-
-                    <div class="mt-6">
-                        <div class="bg-gradient-to-br from-red-200 to-red-400 text-white rounded-2xl p-4 shadow-soft-lg relative overflow-hidden">
-                            <div class="flex items-start gap-3">
-                                <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-2xl">＋</div>
-                                <div>
-                                    <div class="text-sm font-semibold">Need Help</div>
-                                    <p class="text-xs mt-1 opacity-90">Lorem Ipsum is simply dummy text of the printing and typesetting industry.</p>
-                                </div>
-                            </div>
-                            <button class="mt-4 bg-white text-red-600 text-sm font-semibold px-3 py-2 rounded-md shadow">Customer Service</button>
-                            <div class="absolute -right-6 -bottom-8 w-40 h-40 rounded-full bg-white/10 transform rotate-12"></div>
-                        </div>
-                    </div>
+                        <ul class="space-y-3">
+                            <!--Tab Bar-->
+                            <li><a href="HOME.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-primary">🏠</span><span class="text-sm font-medium">Home</span></a></li>
+                            <li><a href="WISHLIST.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">❤️</span><span class="text-sm font-medium">Wishlist </span></a></li>
+                            <li class="bg-red-50 rounded-lg"><a href="checkout.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💳</span><span class="text-sm font-medium">Checkout</span></a></li>
+                            <li><a href="userpage.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">👤</span><span class="text-sm font-medium">Profile</span></a></li>
+                            <li><a href="preach.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">📜</span><span class="text-sm font-medium">Preach History</span></a></li>
+                            <li><a href="contact.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💬</span><span class="text-sm font-medium">Contact us</span></a></li>
+                            <li><a href="setting.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">⚙️</span><span class="text-sm font-medium">Setting</span></a></li>
+                        </ul>
+                    </nav>
                 </div>
             </aside>
             
@@ -89,7 +74,16 @@
                         
                         <div class="flex-grow">
                             <div class="bg-white rounded-2xl shadow-card p-6">
-                                <? $totalQty = array_sum(array_column($_SESSION['cart'], 'quantity')); ?>
+                                <?php
+                                    $cart = $_SESSION['cart'] ?? [];
+                                    $totalQty = 0;
+
+                                    if (isset($_SESSION['buy_now_item'])) {
+                                        $totalQty = 1;
+                                    } elseif (!empty($cart)) {
+                                        $totalQty = array_sum(array_column($cart, 'quantity'));
+                                    }
+                                ?>
 
                                 <h2 class="text-xl font-bold mb-1">Your Shopping Cart</h2>
                                 <p class="text-sm text-gray-600 mb-6">You have <?= $totalQty ?> item(s) in your cart</p>
@@ -100,13 +94,18 @@
                                     <p class="text-right">Price</p>
                                 </div>
                                     <?php 
-                                    if (isset($_SESSION['buy_now_item'])) {
-                                        $item = $_SESSION['buy_now_item'];
-                                        $itemname = htmlspecialchars($item["name"]);
-                                        $subprice = $item["price"];
-                                        $qty = 1;
+                                        // default subtotal
+                                        $subprice = 0;
 
-                                        unset($_SESSION['buy_now_item']);
+                                        // CASE 1: Buy Now flow
+                                        if (isset($_SESSION['buy_now_item'])) {
+                                            $item = $_SESSION['buy_now_item'];
+                                            $itemname = htmlspecialchars($item["name"]);
+                                            $subprice = $item["price"];
+                                            $qty = 1;
+
+                                            // optional: clear it so refresh doesn't duplicate
+                                            unset($_SESSION['buy_now_item']);
                                     ?>
                                         <div class="grid grid-cols-4 items-center py-4 border-b border-soft last:border-b-0">
                                             <div class="flex items-center gap-4 col-span-2">
@@ -122,20 +121,26 @@
                                                 <p class="font-semibold text-gray-800">$<?= number_format($subprice,2) ?></p>
                                             </div>
                                         </div>
-
                                     <?php
-                                    } else {
-                                            $subprice = 0;
-
-                                        foreach ($_SESSION['cart'] as $index => $item): 
-                                            $itemname = htmlspecialchars($item['name']);
-                                            $price = $item['price'];
-                                            $qty = $item['quantity']; 
-                                            $subprice += $price* $qty;
+                                        // CASE 2: Completely empty cart
+                                        } elseif (empty($cart)) {
+                                    ?>      
+                                        <div class="py-10 text-center text-gray-500">
+                                            <p class="text-gray-600 text-lg">Your cart is empty!</p>
+                                        </div>
+                                    <?php
+                                        // CASE 3: Normal cart items
+                                        } else {
+                                            foreach ($cart as $index => $item): 
+                                                $itemname = htmlspecialchars($item['name']);
+                                                $price = $item['price'];
+                                                $qty = $item['quantity']; 
+                                                $subprice += $price * $qty;
+                                                $img = !empty($item['image']) ? $item['image'] : 'asset/example-product-1.png';
                                     ?>
                                         <div class="grid grid-cols-4 items-center py-4 border-b border-soft last:border-b-0">
                                             <div class="flex items-center gap-4 col-span-2">
-                                                <img src="asset/example-product-1.png" alt="Product Image" class="w-16 h-16 object-cover rounded-lg border border-outline">
+                                                <img src="<?= $img ?>" alt="Product Image" class="w-16 h-16 object-cover rounded-lg border border-outline">
                                                 <div>
                                                     <p class="font-medium"><?= $itemname ?></p>
                                                 </div>
@@ -144,14 +149,13 @@
                                                 <span class="truncate pr-2"><?= $qty ?></span>                                        
                                             </div>
                                             <div class="text-right flex justify-end items-center gap-3">
-                                                <p class="font-semibold text-gray-800">$<?= number_format($price*$qty,2) ?></p>
+                                                <p class="font-semibold text-gray-800">$<?= number_format($price * $qty,2) ?></p>
                                             </div>
                                         </div>
-                                        <?php 
+                                    <?php 
                                         endforeach; 
                                     }
                                     ?>
-                                    
                             </div>
                         </div>
 
@@ -225,10 +229,13 @@
                                             <input type="text" id="cvv" name="cvv" placeholder="CVV" class="w-full py-2 px-3 rounded-md border border-white/50 bg-white/20 text-white placeholder-white/70 focus:outline-none focus:ring-1 focus:ring-white">
                                         </div>
                                     </div>
-                                    
-                                    <button id="paynow" class="w-full py-3 mt-6 bg-white text-primary font-semibold rounded-md shadow-lg hover:bg-gray-100 transition">
+                                
+                                    <button id="paynow" class="w-full py-3 mt-6 font-semibold rounded-md shadow-lg transition
+                                        <?= $subprice == 0 ? 'bg-white/60 text-primary/50 cursor-not-allowed' : 'bg-white text-primary hover:bg-gray-100' ?>"
+                                        <?= $subprice == 0 ? 'disabled' : '' ?>>
                                         Pay Now <?= $total ?>
                                     </button>
+
                                 </form>
                             </div>
                         </div>
