@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 17, 2025 at 07:39 PM
+-- Generation Time: Nov 19, 2025 at 09:48 PM
 -- Server version: 5.7.24
 -- PHP Version: 8.2.14
 
@@ -244,11 +244,12 @@ INSERT INTO `products` (`product_id`, `product_name`, `category`, `price`, `stoc
 (33, 'Dog Food 1kg', 'Pet Supply', '120.00', 20, '2026-08-01', 'Active', 'https://www.animalia.com.ar/wp-content/uploads/2018/12/WhatsApp-Image-2020-02-19-at-11.52.06.jpeg'),
 (34, 'Cat Food 500g', 'Pet Supply', '75.00', 25, '2026-05-10', 'Active', 'https://gourmetmarketthailand.com/_next/image?url=https%3A%2F%2Fmedia-stark.gourmetmarketthailand.com%2Fproducts%2Fcover%2F8853301550055-1.webp&w=1200&q=75'),
 (35, 'Pet Shampoo 250ml', 'Pet Supply', '60.00', 15, NULL, 'Active', 'https://petprotectthailand.com/sites/12063/files/s/products/o_1g5oidce839d174611gg1cj41770k.jpg'),
-(36, 'Cat Litter 5kg', 'Pet Supply', '90.00', 18, NULL, 'Active', 'https://gourmetmarketthailand.com/_next/image?url=https%3A%2F%2Fmedia-stark.gourmetmarketthailand.com%2Fproducts%2Fthumbnail%2F3182550721202-1.webp&w=1200&q=75'),
+(36, 'Cat Litter 5kg', 'Pet Supply', '90.00', 18, NULL, 'Active', 'https://images.onlinepets.com/product-images/catalog/afb2ec7eba460bd56a5c4dc72d2dd552c8a8ab224d258c6c86f5042118ce6c40_3.jpeg'),
 (37, 'Umbrella Foldable', 'Other', '120.00', 12, NULL, 'Active', 'https://www.nitori.co.th/cdn/shop/products/869958912_570x570.jpg?v=1684985809'),
 (38, 'Face Mask Pack (10pcs)', 'Other', '25.00', 200, NULL, 'Active', 'https://th.yukazan.com/cdn/shop/products/Slide178.jpg?v=1671068483'),
 (39, 'Lighter Standard', 'Other', '10.00', 150, NULL, 'Active', 'https://hercules-group.com/wp-content/uploads/2020/12/11454.jpg'),
-(40, 'Reusable Tote Bag', 'Other', '30.00', 60, NULL, 'Active', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3YRm3HC6HzEzWjtzWyrh28W9AnvOx53Z4eC4WXJTXcQpI3BxPUjKXslI_RK4iqGOovcU&usqp=CAU');
+(40, 'Reusable Tote Bag', 'Other', '30.00', 60, NULL, 'Active', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3YRm3HC6HzEzWjtzWyrh28W9AnvOx53Z4eC4WXJTXcQpI3BxPUjKXslI_RK4iqGOovcU&usqp=CAU'),
+(41, 'Premium Chocolate Bar', 'Snack', '300.00', 10, '2026-12-20', 'Active', 'https://i.postimg.cc/k4YZv6RP/chocolate-bar-removebg-preview.png');
 
 --
 -- Triggers `products`
@@ -378,7 +379,7 @@ ALTER TABLE `payments`
 -- AUTO_INCREMENT for table `products`
 --
 ALTER TABLE `products`
-  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `product_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT for table `users`
