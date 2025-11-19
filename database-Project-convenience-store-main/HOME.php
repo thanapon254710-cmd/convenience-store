@@ -36,7 +36,7 @@ $baseProducts = [];
 
 while ($row = $result->fetch_assoc()) {
     $baseProducts[] = [
-        "id"       => $row["id"],
+        "id"       => $row["id"], // keep as your original
         'name'     => $row['product_name'],
         'price'    => (float)$row['price'],
         'quantity' => (int)$row['stock_qty'],
@@ -149,6 +149,8 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                             </div>
                         </div>
 
+                        <?php if (!$viewAll): ?>
+                        <!-- HERO PRODUCT (only show when NOT view=all) -->
                         <div class="bg-white rounded-2xl shadow-card p-6 mb-6 relative">
                             <div class="grid grid-cols-12 gap-6 items-center">
                                 <div class="col-span-12 md:col-span-4 lg:col-span-3">
@@ -164,8 +166,9 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                                             <a href="Product_description.php?
                                                 name= <?= $heroProduct['name']  ?>&
                                                 price=<?= $heroProduct['price'] ?>&
-                                                image=<?= $heroProduct['image'] ?>"
-                                                ><h3 class="text-lg font-semibold"><?= $heroProduct['name'] ?></h3>
+                                                image=<?= $heroProduct['image'] ?>">
+
+                                                <h3 class="text-lg font-semibold"><?= $heroProduct['name'] ?></h3>
                                             </a>
                                             <p class="mt-3 text-sm text-gray-600"><?= $heroProduct['detail'] ?></p>
                                         </div>
@@ -181,7 +184,7 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                                         <form id="hero-add-form" action="ADDTOCART.php" method="POST">
                                             <input type="hidden" name="product_name" value="<?= htmlspecialchars($heroProduct['name']) ?>">
                                             <input type="hidden" name="product_price" value="<?= $heroProduct['price'] ?>">
-                                            <input type="hidden" name="product_image" value="<?= htmlspecialchars($product['image']) ?>">
+                                            <input type="hidden" name="product_image" value="<?= htmlspecialchars($heroProduct['image']) ?>">
                                             <input type="hidden" name="action_type" value="add_to_cart">
                                             
                                             <button type="submit" class="flex items-center gap-2 border border-gray-200 rounded-md px-3 py-2 text-gray-700 hover:bg-gray-50 transition">
@@ -193,7 +196,7 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                                         <form action="ADDTOCART.php" method="POST">
                                             <input type="hidden" name="product_name" value="<?= htmlspecialchars($heroProduct['name']) ?>">
                                             <input type="hidden" name="product_price" value="<?= $heroProduct['price'] ?>">
-                                            <input type="hidden" name="product_image" value="<?= htmlspecialchars($product['image']) ?>">
+                                            <input type="hidden" name="product_image" value="<?= htmlspecialchars($heroProduct['image']) ?>">
                                             <input type="hidden" name="action_type" value="buy_now">
                                             
                                             <button type="submit" name="buy_now" class="bg-primary text-white px-4 py-2 rounded-md text-sm font-semibold shadow hover:bg-accent transition">
@@ -221,6 +224,7 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                                 </div>
                             </div>
                         </div>
+                        <?php endif; ?>
 
                         <!-- Popular products -->
                         <section class="mb-8">
@@ -251,9 +255,10 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                                                     name= <?= $product['name']  ?>&
                                                     price=<?= $product['price'] ?>&
                                                     category=<?= $product['category']    ?>&
-                                                    image=<?= $product['image'] ?>"
-                                                >
-                                                    <?= $product['name'] . " (" . ($index + 1) . ")" ?>
+                                                    image=<?= $product['image'] ?>">
+
+                                                    <!-- removed (1), (2), (3)... here -->
+                                                    <?= $product['name'] ?>
                                                 </a>
                                             </div> 
                                             <div class="text-xs text-gray-500">$<?= number_format($product['price'], 2) ?></div>
@@ -392,7 +397,7 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                                                     <img src='$img' class='w-full h-full object-cover'>
                                                 </div>
                                                 <div class='flex-1'>
-                                                    <div class='text-sm font-medium'><a href=\"#\">{$cateName}</a></div>
+                                                    <div class='text-sm font-medium'><a href=\"CATEGORY.php?category=" . urlencode($cateName) . "\">{$cateName}</a></div>
                                                 </div>
                                             </div>";
                                         }
