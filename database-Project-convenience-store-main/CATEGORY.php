@@ -2,6 +2,8 @@
 session_start();
 require_once("userconnect.php");
 
+$Cateall = isset($_GET['viewCate']) && $_GET['viewCate'] === 'all';
+
 // Read selected category
 $currentCategory = $_GET['category'] ?? '';
 if ($currentCategory === '') {
@@ -11,7 +13,7 @@ if ($currentCategory === '') {
 
 // Fetch products in this category
 $stmt = $mysqli->prepare("
-    SELECT product_id, product_name, price, stock_qty, image_path, category
+    SELECT *
     FROM products
     WHERE category = ?
     ORDER BY product_name ASC
@@ -27,6 +29,7 @@ while ($row = $result->fetch_assoc()) {
         "name"     => $row["product_name"],
         "price"    => (float)$row["price"],
         "quantity" => (int)$row["stock_qty"],
+        "status"   => $row["status"],
         "category" => $row["category"],
         "image"    => $row["image_path"] ?: 'asset/default.png'
     ];
@@ -182,6 +185,7 @@ $cartTotal = array_sum(array_map(function($i) {
                                     id=<?= $product['id'] ?>&
                                     name=<?= urlencode($product['name']) ?>&
                                     price=<?= $product['price'] ?>&
+                                    status=<?= urlencode($product['status']) ?>&
                                     category=<?= urlencode($product['category']) ?>&
                                     image=<?= urlencode($product['image']) ?>">
                                     <div class="text-sm font-semibold"><?= $product['name'] ?></div>
@@ -283,46 +287,63 @@ $cartTotal = array_sum(array_map(function($i) {
                         <div class="bg-white rounded-2xl p-4 shadow-card">
                             <div class="flex items-center justify-between mb-3">
                                 <h3 class="text-sm font-semibold">Category</h3>
-                                <a href="HOME.php?category=all" class="text-xs text-gray-400">View All</a>
+                                <?php if (!$Cateall): ?>
+                                    <a href="CATEGORY.php?category=<?= urlencode($currentCategory) ?>&viewCate=all"
+                                    class="text-xs text-gray-400">View All</a>
+                                <?php else: ?>
+                                    <a href="CATEGORY.php?category=<?= urlencode($currentCategory) ?>"
+                                    class="text-xs text-gray-400">View Less</a>
+                                <?php endif; ?>
                             </div>
 
-                            <div class="space-y-3 max-h-72 overflow-auto pr-2">
+                            <div class="space-y-3 
+                                <?= $Cateall ? 'max-h-none overflow-visible' : 'max-h-72 overflow-auto' ?> 
+                            pr-2">
                                 <?php
-                                $catResult = $mysqli->query("SELECT DISTINCT(category) FROM products");
+                                    $q1 = "SELECT DISTINCT(category) FROM products";
 
-                                $categoryImages = [
-                                    "Beverage"       => "asset/category/beverage.png",
-                                    "Snack"          => "asset/category/snack.png",
-                                    "Instant Food"   => "asset/category/instant.png",
-                                    "Dairy Product"  => "asset/category/dairy.png",
-                                    "Frozen Food"    => "asset/category/frozen.png",
-                                    "Personal Care"  => "asset/category/personal-care.png",
-                                    "Household Item" => "asset/category/household.png",
-                                    "Stationery"     => "asset/category/stationery.png",
-                                    "Pet Supply"     => "asset/category/pet.png",
-                                    "Other"          => "asset/category/other.png"
-                                ];
+                                    if (!$Cateall) {
+                                        $q1 .= " LIMIT 5";
+                                    }
 
-                                while ($row = $catResult->fetch_assoc()):
-                                    $cateName = $row['category'];
-                                    $img = $categoryImages[$cateName] ?? "asset/category/other.png";
+                                    $result1 = $mysqli->query($q1);
+
+                                    if (!$result1){
+                                        echo "Select failed. Error: " . $mysqli->error;
+                                        return false;
+                                    }
+                                        
+                                    $categoryImages = [
+                                        "Beverage"       => "asset/category/beverage.png",
+                                        "Snack"          => "asset/category/snack.png",
+                                        "Instant Food"   => "asset/category/instant.png",
+                                        "Dairy Product"  => "asset/category/dairy.png",
+                                        "Frozen Food"    => "asset/category/frozen.png",
+                                        "Personal Care"  => "asset/category/personal-care.png",
+                                        "Household Item" => "asset/category/household.png",
+                                        "Stationery"     => "asset/category/stationery.png",
+                                        "Pet Supply"     => "asset/category/pet.png",
+                                        "Other"          => "asset/category/other.png"
+                                    ];
+
+
+                                    while ($row1 = $result1->fetch_assoc()) {
+                                        $cateName = $row1['category'];
+                                        $img = $categoryImages[$cateName] ?? 'asset/category/other.png';
+
+                                        echo " 
+                                        <div class='flex items-center gap-3'>
+                                            <div class='w-12 h-12 rounded-md bg-gray-100'>
+                                                <img src='$img' class='w-full h-full object-cover'>
+                                            </div>
+                                            <div class='flex-1'>
+                                                <div class='text-sm font-medium'><a href=\"CATEGORY.php?category=" . urlencode($cateName) . "\">{$cateName}</a></div>
+                                            </div>
+                                        </div>";
+                                    }
                                 ?>
-                                <div class="flex items-center gap-3">
-                                    <div class="w-12 h-12 rounded-md bg-gray-100">
-                                        <img src="<?= $img ?>" class="w-full h-full object-cover">
-                                    </div>
-                                    <div class="flex-1">
-                                        <div class="text-sm font-medium">
-                                       a    <a href="CATEGORY.php?category=<?= urlencode($cateName) ?>">
-                                                <?= $cateName ?>
-                                            </a>
-                                        </div>
-                                    </div>
-                                </div>
-                                <?php endwhile; ?>
                             </div>
                         </div>
-
                     </div>
                 </aside>
 

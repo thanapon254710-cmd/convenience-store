@@ -6,19 +6,47 @@ $viewAll = isset($_GET['view']) && $_GET['view'] === 'all';
 $Cateall = isset($_GET['category']) && $_GET['category'] === 'all';
 
 // --- PRODUCT DATA ARRAYS ---
-// Define the Hero Product data
-$heroProduct = [
-    'id'     => 'hero_chocolate',
-    'name'   => 'Premium Chocolate Bar',
-    'price'  => 45.50, // Use numeric format
-    'detail' => 'Rich, dark chocolate with sea salt flakes.',
-    'image'  => 'asset/chocolate.png' // Ensure this path is correct
-];
+// Only the most expensive 
+$heroq = "SELECT * FROM products 
+          WHERE status != 'Inactive'
+          ORDER BY price DESC
+          LIMIT 1";
 
-// Collect all products from DB
-$q = "SELECT product_id, product_name, price, stock_qty, image_path, category
-      FROM products 
-      ORDER BY stock_qty DESC";
+$resultHero = $mysqli->query($heroq);
+
+if (!$resultHero){
+    echo "Select failed. Error: " . $mysqli->error;
+    return false;
+}
+
+while ($rowHero = $resultHero->fetch_assoc()) {
+    $statusRaw = $rowHero['status']; 
+    if ($statusRaw === 'Active') {
+        $statusDisplay = 'In Stock';
+    } elseif ($statusRaw === 'Out of Stock') {
+        $statusDisplay = 'Out of Stock';
+    }
+
+    $heroProduct = [
+        'id'            => (int)$rowHero['product_id'],
+        'name'          => $rowHero['product_name'],
+        'price'         => (float)$rowHero['price'],
+        'quantity'      => $rowHero['stock_qty'],
+        'detail'        => 'Rich, dark chocolate with sea salt flakes.',
+        'category'      => $rowHero['category'],
+        'status_raw'    => $statusRaw,
+        'status_label'  => $statusDisplay,
+        'image'         => $rowHero['image_path'] ?? 'asset/default.png'
+    ];
+}
+$heroId = $heroProduct['id'];
+
+// Select all products except the most expensive from DB
+$q =  "SELECT * FROM products
+       WHERE product_id != $heroId
+       AND status != 'Inactive'
+       ORDER BY stock_qty DESC";
+
 
 // Collect 16 popular products from DB
 if (!$viewAll) {
@@ -35,25 +63,26 @@ if (!$result){
 $baseProducts = [];
 
 while ($row = $result->fetch_assoc()) {
+    $statusRaw1 = $row['status']; 
+    if ($statusRaw1 === 'Active') {
+        $statusDisplay1 = 'In Stock';
+    } elseif ($statusRaw1 === 'Out of Stock') {
+        $statusDisplay1 = 'Out of Stock';
+    }
+
     $baseProducts[] = [
-        "id"       => $row["id"], // keep as your original
+        'id'       => (int)$row["product_id"],
         'name'     => $row['product_name'],
         'price'    => (float)$row['price'],
         'quantity' => (int)$row['stock_qty'],
         'category' => $row['category'],
+        'status_raw'    => $statusRaw1,
+        'status_label'  => $statusDisplay1,
         'image'    => $row['image_path'] ?? 'asset/default.png'
     ];
 }
 
-// --- EXTENDED PRODUCT LIST (For 16 items) ---
-// give each card a UNIQUE id so hearts don’t affect each other
-$popularProducts = [];
-$counter = 1;
-foreach ($baseProducts as $p) {
-    $p['id'] = 'p' . $counter;
-    $popularProducts[] = $p;
-    $counter++;
-}
+$popularProducts = $baseProducts;
 
 // Calculate total cart price
 $cart = $_SESSION['cart'] ?? [];
@@ -70,7 +99,7 @@ $wishlist = $_SESSION['wishlist'] ?? [];
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width,initial-scale=1" />
-    <title>Number 1 Shop — Mock</title>
+    <title>Number 1 Shop</title>
     <link rel="stylesheet" href="css/style.css">
 
     <script src="https://cdn.tailwindcss.com"></script>
@@ -164,8 +193,11 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                                     <div class="flex justify-between items-start flex-wrap">
                                         <div>
                                             <a href="Product_description.php?
-                                                name= <?= $heroProduct['name']  ?>&
+                                                id=<?= $heroProduct['id'] ?>&
+                                                name=<?= $heroProduct['name'] ?>&
                                                 price=<?= $heroProduct['price'] ?>&
+                                                category=<?= $heroProduct['category'] ?>&
+                                                status=<?= $heroProduct['status_raw'] ?>&
                                                 image=<?= $heroProduct['image'] ?>">
 
                                                 <h3 class="text-lg font-semibold"><?= $heroProduct['name'] ?></h3>
@@ -251,10 +283,11 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                                         <div class="flex-1">
                                             <div class="text-sm font-medium">
                                                 <a href="Product_description.php?
-                                                    id= <?= $product['id'] ?>&
-                                                    name= <?= $product['name']  ?>&
+                                                    id=<?= $product['id'] ?>&
+                                                    name=<?= $product['name']  ?>&
                                                     price=<?= $product['price'] ?>&
-                                                    category=<?= $product['category']    ?>&
+                                                    category=<?= $product['category'] ?>&
+                                                    status=<?= $product['status_raw'] ?>&
                                                     image=<?= $product['image'] ?>">
 
                                                     <!-- removed (1), (2), (3)... here -->

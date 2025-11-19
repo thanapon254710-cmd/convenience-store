@@ -2,46 +2,70 @@
 session_start();
 require_once("userconnect.php");
 
-$id    = $_GET["id"];
+$id    = isset($_GET['id']) ? (int)$_GET['id'] : null;
 $name  = $_GET['name']  ?? 'Unknown Product';
 $price = $_GET['price'] ?? '0.00';
 $category = $_GET['category'] ?? null;
+$status = $_GET['status'] ?? null;
 $image = $_GET['image'] ?? 'asset/default.png';
+
+// --- WISHLIST (SESSION) ---
+$wishlist = $_SESSION['wishlist'] ?? [];
+$inWishlist = isset($wishlist[$id]);
+
+if ($status === 'Active' || $status === 'In Stock') {
+    $statusDisplay = 'In Stock';
+    $statusIcon    = 'fas fa-check-circle text-green-500';
+} elseif ($status === 'Out of Stock') {
+    $statusDisplay = 'Out of Stock';
+    $statusIcon    = 'fas fa-times-circle text-red-500';
+}
 
 // Fetch related products (same category, different name)
 $relatedProducts = [];
 
 if ($category) {
     $q = $mysqli->prepare("
-        SELECT product_id, product_name, price, image_path
+        SELECT *
         FROM products
-        WHERE TRIM(product_name) != TRIM(?) AND category = ?
+        WHERE product_id != ? AND category = ? AND status != 'Inactive'
         LIMIT 5
     ");
-    $q->bind_param('ss', $name, $category);
+    $q->bind_param('is', $id, $category);
     $q->execute();
     $result = $q->get_result();
     
+    $relatedProducts = [];
+
     while ($row = $result->fetch_assoc()) {
-        $relatedProducts[] = $row;
+        $statusRaw = $row['status']; 
+        if ($statusRaw === 'Active') {
+            $statusDisplay = 'In Stock';
+        } elseif ($statusRaw === 'Out of Stock') {
+            $statusDisplay = 'Out of Stock';
+        }
+
+        $relatedProducts[] = [
+            'id'            => (int)$row["product_id"],
+            'name'          => $row['product_name'],
+            'price'         => (float)$row['price'],
+            'quantity'      => (int)$row['stock_qty'],
+            'category'      => $row['category'],
+            'status_raw'   => $statusRaw,
+            'status_label' => $statusDisplay,   
+            'image'         => $row['image_path'] ?? 'asset/default.png'
+        ];
     }
     $q->close();
 }
-
 ?>
-    <script>
-    alert(
-        "Category: <?= $category ?>\n\n" +
-        "Products:\n<?= implode('\n', array_column($relatedProducts, 'product_name')) ?>"
-        );
-    </script>
 
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pinnapple - Number 1 Shop</title>
+    <title>Number 1 Shop</title>
     <script src="https://cdn.tailwindcss.com"></script>
     
     <script>
@@ -123,8 +147,7 @@ if ($category) {
     <main class="container mx-auto px-4 sm:px-6 lg:px-8 mt-6">
         <div class="text-sm text-gray-500 mb-6">
             <a href="HOME.php" class="hover:text-primary">Home</a> / 
-            <a href="#" class="hover:text-primary">Categories</a> / 
-            <a href="#" class="hover:text-primary"><?= $category ?></a> / 
+            <a href="CATEGORY.php?category=<?= urlencode($category) ?>" class="hover:text-primary"><?= $category ?></a> / 
             <span class="font-semibold"><?= $name ?></span>
         </div>
 
@@ -143,27 +166,12 @@ if ($category) {
                         <span class="text-xl font-bold">Price</span>
                         <span class="ml-4 text-xl">$<?= number_format($price, 2) ?></span>
                     </div>
-
-                    <ul class="list-none text-gray-600 mb-4">
-                        <li class="mb-1">• Details</li>
-                        <li class="mb-1">• Details</li>
-                        <li class="mb-1">• Details</li>
-                    </ul>
                     
-                    <div class="inline-block bg-green-100 text-green-700 text-xs font-bold px-3 py-1 rounded mb-4">FREE SHIPPING</div>
-
                     <div class="text-gray-800 font-medium mb-6">
-                        <i class="fas fa-check-circle text-green-500 mr-2"></i> In stock
+                        <i class="<?= $statusIcon ?> mr-2"></i> <?= $statusDisplay ?>
                     </div>
                     
                     <div class="flex items-center space-x-3">
-                        <label for="qty" class="text-sm font-bold">QTY</label>
-                        <div class="flex border border-gray-300 rounded-md overflow-hidden">
-                            <button class="bg-gray-100 px-3 py-2 text-lg hover:bg-gray-200 border-r border-gray-300">-</button>
-                            <input type="text" id="qty" value="1" readonly class="w-12 text-center text-base focus:outline-none">
-                            <button class="bg-gray-100 px-3 py-2 text-lg hover:bg-gray-200 border-l border-gray-300">+</button>
-                        </div>
-                        
                         <!-- add to cart -->
                         <form action="ADDTOCART.php" method="POST" class="inline-block">
                             <input type="hidden" name="product_name"  value="<?= htmlspecialchars($name) ?>">
@@ -178,10 +186,10 @@ if ($category) {
 
                         <!-- wishlist -->
                         <form action="WISHLIST_ACTION.php" method="POST" class="inline-block">
-                            <input type="hidden" name="product_id" value="<?= htmlspecialchars($product['id']) ?>">
-                            <input type="hidden" name="product_name" value="<?= htmlspecialchars($product['name']) ?>">
-                            <input type="hidden" name="product_price" value="<?= $product['price'] ?>">
-                            <input type="hidden" name="product_image" value="<?= htmlspecialchars($product['image']) ?>">
+                            <input type="hidden" name="product_id" value="<?= htmlspecialchars($id) ?>">
+                            <input type="hidden" name="product_name" value="<?= htmlspecialchars($name) ?>">
+                            <input type="hidden" name="product_price" value="<?= $price ?>">
+                            <input type="hidden" name="product_image" value="<?= htmlspecialchars($image) ?>">
 
                             <button type="submit" name="action" value="toggle"
                                 class="w-8 h-8 flex items-center justify-center rounded-full border text-xs transition <?=
@@ -244,13 +252,20 @@ if ($category) {
                     <?php foreach ($relatedProducts as $rp): ?>
                         <div class="text-center">
                             <div class="bg-placeholder-bg h-48 rounded-lg mb-3 relative flex justify-center items-center overflow-hidden">
-                                <img src="<?= htmlspecialchars($rp['image_path'] ?? 'asset/default.png') ?>"
-                                     alt="<?= htmlspecialchars($rp['product_name']) ?>"
+                                <img src="<?= htmlspecialchars($rp['image'] ?? 'asset/default.png') ?>"
+                                     alt="<?= htmlspecialchars($rp['name']) ?>"
                                      class="w-full h-full object-contain">
                             </div>
-                            <p class="font-bold text-gray-800">
-                                <?= htmlspecialchars($rp['product_name']) ?>
-                            </p>
+                            <a href="Product_description.php?
+                                id=<?= $rp['id'] ?>&
+                                name=<?= urlencode($rp['name']) ?>&
+                                price=<?= $rp['price'] ?>&
+                                category=<?= urlencode($rp['category']) ?>&
+                                status=<?= urlencode($rp['status_raw']) ?>&
+                                image=<?= urlencode($rp['image']) ?>">
+
+                                <h3 class="font-bold text-gray-800"><?= htmlspecialchars($rp['name']) ?></h3>
+                            </a>
                             <p class="text-sm text-gray-600">
                                 $<?= number_format($rp['price'], 2) ?>
                             </p>

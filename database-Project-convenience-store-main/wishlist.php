@@ -1,6 +1,7 @@
 <?php
 ob_start();
 session_start();
+require_once("userconnect.php");
 
 // --- WISHLIST FROM SESSION ---
 $wishlist_items = isset($_SESSION['wishlist']) ? array_values($_SESSION['wishlist']) : [];
@@ -11,6 +12,9 @@ $cartTotal = array_sum(array_map(function($i) {
     $qty = isset($i['quantity']) ? (int)$i['quantity'] : 1;
     return ((float)$i['price']) * $qty;
 }, $cart));
+
+// --- CATEGORY VIEW LOGIC (same style as HOME.php) ---
+$Cateall = isset($_GET['category']) && $_GET['category'] === 'all';
 ?>
 
 <!doctype html>
@@ -110,7 +114,12 @@ $cartTotal = array_sum(array_map(function($i) {
                                         
                                         <div class="flex-grow min-w-0 pr-4">
                                             <h3 class="text-xl font-bold text-gray-800 truncate mb-1">
-                                                <a href="Product_description.php?name=<?= urlencode($item['name']) ?>" class="hover:text-primary transition">
+                                                <a href="Product_description.php?
+                                                id=<?= $item['id'] ?>&
+                                                name=<?= urlencode($item['name']) ?>&
+                                                price=<?= $item['price'] ?>&
+                                                image=<?= $item['image'] ?>
+                                                " class="hover:text-primary transition">
                                                     <?= htmlspecialchars($item['name']) ?>
                                                 </a>
                                             </h3>
@@ -199,29 +208,57 @@ $cartTotal = array_sum(array_map(function($i) {
 
                             <div class="bg-white rounded-2xl p-4 shadow-card">
                                 <div class="flex items-center justify-between mb-3">
-                                    <h3 class="text-sm font-semibold">Daily Deals</h3>
-                                    <a href="#" class="text-xs text-gray-400">View All</a>
+                                    <h3 class="text-sm font-semibold">Category</h3>
+                                    <?php if (!$Cateall):?>
+                                        <a href="wishlist.php?category=all" class="text-xs text-gray-400">View All</a>
+                                    <?php else: ?>
+                                        <a href="wishlist.php" class="text-xs text-gray-400">View Less</a>
+                                    <?php endif; ?>
                                 </div>
 
-                                <div class="space-y-3 max-h-72 overflow-auto pr-2">
+                                <div class="space-y-3 
+                                    <?= $Cateall ? 'max-h-none overflow-visible' : 'max-h-72 overflow-auto' ?> 
+                                pr-2">
                                     <?php
-                                        $products = [
-                                            ["name" => "Product 1", "details" => "Details", "price" => 45.5],
-                                            ["name" => "Product 2", "details" => "Details", "price" => 45.5],
-                                            ["name" => "Product 3", "details" => "Details", "price" => 45.5],
-                                            ["name" => "Product 4", "details" => "Details", "price" => 45.5],
-                                            ["name" => "Product 5", "details" => "Details", "price" => 45.5]
+                                        $q1 = "SELECT DISTINCT(category) FROM products";
+
+                                        if (!$Cateall) {
+                                            $q1 .= " LIMIT 5";
+                                        }
+
+                                        $result1 = $mysqli->query($q1);
+
+                                        if (!$result1){
+                                            echo "Select failed. Error: " . $mysqli->error;
+                                            return false;
+                                        }
+                                        
+                                        $categoryImages = [
+                                            "Beverage"       => "asset/category/beverage.png",
+                                            "Snack"          => "asset/category/snack.png",
+                                            "Instant Food"   => "asset/category/instant.png",
+                                            "Dairy Product"  => "asset/category/dairy.png",
+                                            "Frozen Food"    => "asset/category/frozen.png",
+                                            "Personal Care"  => "asset/category/personal-care.png",
+                                            "Household Item" => "asset/category/household.png",
+                                            "Stationery"     => "asset/category/stationery.png",
+                                            "Pet Supply"     => "asset/category/pet.png",
+                                            "Other"          => "asset/category/other.png"
                                         ];
 
-                                        foreach ($products as $p) {
-                                            echo "
+
+                                        while ($row1 = $result1->fetch_assoc()) {
+                                            $cateName = $row1['category'];
+                                            $img = $categoryImages[$cateName] ?? 'asset/category/other.png';
+
+                                            echo " 
                                             <div class='flex items-center gap-3'>
-                                                <div class='w-12 h-12 img-placeholder rounded-md bg-gray-100'></div>
-                                                <div class='flex-1'>
-                                                    <div class='text-sm font-medium'><a href=\"Product_description.php\">{$p['name']}</a></div>
-                                                    <div class='text-xs text-gray-400'>{$p['details']}</div>
+                                                <div class='w-12 h-12 rounded-md bg-gray-100'>
+                                                    <img src='$img' class='w-full h-full object-cover'>
                                                 </div>
-                                                <div class='text-sm text-gray-500'>\${$p['price']}</div>
+                                                <div class='flex-1'>
+                                                    <div class='text-sm font-medium'><a href=\"CATEGORY.php?category=" . urlencode($cateName) . "\">{$cateName}</a></div>
+                                                </div>
                                             </div>";
                                         }
                                     ?>
@@ -229,7 +266,6 @@ $cartTotal = array_sum(array_map(function($i) {
                             </div>
                         </div>
                     </aside>
-
                 </div>
             </div>
         </div>

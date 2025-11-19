@@ -1,8 +1,4 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-
 session_start();
 require_once 'connect.php';
 
@@ -31,13 +27,13 @@ if (isset($_POST['submit'])) {
         } else {
             $q->bind_param("ss", $u, $p); // <-- for now storing plain password
             if ($q->execute()) {
-                $success = "Signup successful! You can now log in.";
+                header("Location: index.php");
+                exit;
             } else {
                 $error = "Could not create account: " . $q->error;
             }
             $q->close();
         }
-    header("Location: index.php");
     }
 }
 ?>

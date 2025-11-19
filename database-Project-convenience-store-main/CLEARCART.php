@@ -1,7 +1,8 @@
 <?php
 session_start();
-unset($_SESSION['cart']); 
+$_SESSION['cart'] = [];
 
-header("Location: HOME.php");  // <-- MATCH YOUR REAL FILE NAME EXACTLY
+$back = $_SERVER['HTTP_REFERER'] ?? 'HOME.php';
+header("Location: " . $back);
 exit();
 ?>

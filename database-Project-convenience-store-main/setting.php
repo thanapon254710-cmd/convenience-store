@@ -22,7 +22,7 @@ $settings = $_SESSION['settings'];
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Settings — Convenience Store</title>
+    <title>Settings — Number 1 Shop</title>
 
     <script src="https://cdn.tailwindcss.com"></script>
     <script>

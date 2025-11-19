@@ -6,14 +6,17 @@ if (!isset($_SESSION['wishlist'])) {
 }
 
 $action = $_POST['action'] ?? ($_GET['action'] ?? null);
-$id     = $_POST['product_id'] ?? null;
+$idRaw  = $_POST['product_id'] ?? null;
 $name   = $_POST['product_name'] ?? null;
+$status = $_POST['status'] ?? null;
 
-if ($action && $name) {
-    // fallback id if not provided
-    if (!$id) {
-        $id = $name;
-    }
+if ($idRaw !== null) {
+    $id = (int)$idRaw;   // normalize to int
+} else {
+    $id = null;
+}
+
+if ($action && $id !== null && $name) {
 
     if ($action === 'toggle' || $action === 'add') {
 

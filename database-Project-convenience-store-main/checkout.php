@@ -6,7 +6,7 @@ session_start();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopping Cart</title>
+    <title>Check Out — Number 1 Shop</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
         // Tailwind theme extension - Identical to other pages for consistent styling
@@ -166,6 +166,7 @@ session_start();
                         if (isset($_SESSION['buy_now_item'])) {
                             $item = $_SESSION['buy_now_item'];
                             $itemname = htmlspecialchars($item["name"]);
+                            $img = htmlspecialchars($item["image"]);
                             $subprice = $item["price"];
                             $qty = 1;
 
@@ -174,7 +175,7 @@ session_start();
                             ?>
                             <div class="grid grid-cols-4 items-center py-4 border-b border-soft last:border-b-0">
                                 <div class="flex items-center gap-4 col-span-2">
-                                    <img src="asset/example-product-1.png" alt="Product Image"
+                                    <img src="<?= $img ?>" alt="Product Image"
                                          class="w-16 h-16 object-cover rounded-lg border border-outline">
                                     <div>
                                         <p class="font-medium"><?= $itemname ?></p>
@@ -245,7 +246,7 @@ session_start();
                                 <p class="text-gray-600">Shipping Estimate</p>
                                 <?php
                                 $minimum = 100;
-                                $shipping = ($subprice > $minimum || $subprice == 0) ? 0 : 3.50;
+                                $shipping = ($subprice >= $minimum || $subprice == 0) ? 0 : 3.50;
                                 $tax = number_format(($subprice + $shipping) * 0.07, 2);
                                 $total = number_format($subprice + $shipping + $tax, 2);
                                 ?>

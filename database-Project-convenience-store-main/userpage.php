@@ -6,7 +6,7 @@ session_start();
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>User Profile</title>
+        <title>User Profile — Number 1 Shop</title>
         <script src="https://cdn.tailwindcss.com"></script>
         <script>
         // Tailwind theme extension - Identical to HOME.php for consistent styling

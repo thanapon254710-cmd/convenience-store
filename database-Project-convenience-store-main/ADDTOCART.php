@@ -13,29 +13,39 @@ $return     = $_POST['return']        ?? null;
 
 if ($name) {
     // find existing item
-    $foundIndex = null;
-    foreach ($_SESSION['cart'] as $index => $item) {
-        if ($item['name'] === $name && (float)$item['price'] === $price) {
-            $foundIndex = $index;
-            break;
+    if ($actionType !== 'buy_now') {
+        $foundIndex = null;
+        foreach ($_SESSION['cart'] as $index => $item) {
+            if ($item['name'] === $name && (float)$item['price'] === $price) {
+                $foundIndex = $index;
+                break;
+            }
         }
-    }
 
-    if ($foundIndex === null) {
-        $_SESSION['cart'][] = [
+        if ($foundIndex === null) {
+            $_SESSION['cart'][] = [
+                'name'     => $name,
+                'price'    => $price,
+                'quantity' => 1,
+                'image'    => $image
+            ];
+        } else {
+            $_SESSION['cart'][$foundIndex]['quantity'] =
+                ($_SESSION['cart'][$foundIndex]['quantity'] ?? 1) + 1;
+
+            // make sure image is saved even if item already existed
+            if (!isset($_SESSION['cart'][$foundIndex]['image'])) {
+                $_SESSION['cart'][$foundIndex]['image'] = $image;
+            }
+        }
+    } else {
+        $_SESSION['buy_now_item'] = [
             'name'     => $name,
             'price'    => $price,
             'quantity' => 1,
             'image'    => $image
         ];
-    } else {
-        $_SESSION['cart'][$foundIndex]['quantity'] =
-            ($_SESSION['cart'][$foundIndex]['quantity'] ?? 1) + 1;
-
-        // make sure image is saved even if item already existed
-        if (!isset($_SESSION['cart'][$foundIndex]['image'])) {
-            $_SESSION['cart'][$foundIndex]['image'] = $image;
-        }
+        $return = 'checkout.php';
     }
 }
 

@@ -1,7 +1,9 @@
 <?php
+/*
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+*/
 
 session_start();
 require_once 'connect.php';
@@ -54,8 +56,8 @@ if (isset($_POST['submit'])) {
                 if($mysqli->connect_errno){
                     die("Database connection failed: " . $mysqli->connect_error);
                 }
-                $_SESSION["usercon"] = $dbUser;
-                $_SESSION["passcon"] = $dbPass;
+                $_SESSION["db_username"] = $dbUser;
+                $_SESSION["db_password"] = $dbPass;
 
                 // Redirect depending on role
                 // $_SESSION['db_message'] = "Connected to MySQL as $dbUser"; //check if connect successful or not
@@ -94,6 +96,12 @@ if (isset($_POST['submit'])) {
     <form action="<?= $_SERVER['PHP_SELF'] ?>" method="POST">
         <div class="card">
             <h2>Login</h2>
+
+            <!-- SHOW ERROR HERE -->
+            <?php if ($error): ?>
+                <p class="error"><?= htmlspecialchars($error) ?></p>
+            <?php endif; ?>
+
             <label>Username</label>
             <input type="text" name="username" placeholder="Enter your username" required>
 

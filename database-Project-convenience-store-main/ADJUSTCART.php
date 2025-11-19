@@ -36,7 +36,8 @@ if ($_SERVER["REQUEST_METHOD"] == "GET") {
         }
     }
 }
-// Redirect back to HOME.php after modification
-header("Location: HOME.php");
+// stay on the page where you clicked the buttons
+$dest = $_SERVER['HTTP_REFERER'] ?? 'HOME.php';
+header("Location: " . $dest);
 exit();
 ?>
