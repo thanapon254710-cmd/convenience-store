@@ -1,6 +1,36 @@
 <?php
 session_start();
+require_once("userconnect.php");
+
+$cart   = $_SESSION['cart'] ?? [];
+$buyNow = $_SESSION['buy_now_item'] ?? null;
+$couponCheck = $_GET['coupon'] ?? null;
+$couponId     = null;
+$discountRaw  = 0;   
+
+// default mode if not set yet
+if (!isset($_SESSION['checkout_mode'])) {
+    // if they came from sidebar Checkout link, assume cart mode
+    $_SESSION['checkout_mode'] = !empty($cart) ? 'cart' : 'buy_now';
+}
+
+$mode = $_SESSION['checkout_mode'];  // 'buy_now' or 'cart'
+
+if (!empty($couponCheck)) {
+    $couponSafe = $mysqli->real_escape_string($couponCheck);
+    $q = $mysqli->prepare("SELECT coupon_id, discount_percent, min_purchase FROM coupons WHERE coupon_code = ? AND status = 'Active' LIMIT 1");
+    $q->bind_param('s', $couponSafe);
+    $q->execute();
+    $result = $q->get_result();
+    if ($row = $result->fetch_assoc()) {
+        $couponId    = (int)$row['coupon_id'];
+        $discountRaw = (float)$row['discount_percent'];
+        $min_coupon = (float)$row['min_purchase'];
+    }
+    $q->close();
+}
 ?>
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -43,75 +73,23 @@ session_start();
     <aside class="w-64 bg-sidebar p-4 sticky top-0 h-screen overflow-y-auto">
         <div class="bg-white border border-blue-300 rounded-xl p-4 shadow-sm flex flex-col h-full">
             <div class="flex items-center gap-3 mb-6">
-                <div
-                    class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-400 text-white flex items-center justify-center text-lg font-bold">
-                    <img src="asset/2960679-2182.png" alt="logo">
-                </div>
-                <div>
-                    <div class="text-lg font-semibold">
-                        Convenience<br/><span class="text-sm text-gray-500">Store</span>
+                <a href="HOME.php" class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-400 text-white flex items-center justify-center text-lg font-bold"><img src="asset/2960679-2182.png"></div>
+                    <div>
+                        <div class="text-lg font-semibold">Convenience<br/><span class="text-sm text-gray-500">Store</span></div>
                     </div>
-                </div>
+                </a>
             </div>
 
             <nav class="flex-1">
                 <ul class="space-y-3">
-                    <li>
-                        <a href="HOME.php"
-                           class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
-                            <span
-                                class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-primary">🏠</span>
-                            <span class="text-sm font-medium">Home</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="WISHLIST.php"
-                           class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
-                            <span
-                                class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">❤️</span>
-                            <span class="text-sm font-medium">Wishlist</span>
-                        </a>
-                    </li>
-                    <li class="bg-red-50 rounded-lg">
-                        <a href="checkout.php"
-                           class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
-                            <span
-                                class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💳</span>
-                            <span class="text-sm font-medium">Checkout</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="userpage.php"
-                           class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
-                            <span
-                                class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">👤</span>
-                            <span class="text-sm font-medium">Profile</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="preach.php"
-                           class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
-                            <span
-                                class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">📜</span>
-                            <span class="text-sm font-medium">Preach History</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="contact.php"
-                           class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
-                            <span
-                                class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💬</span>
-                            <span class="text-sm font-medium">Contact us</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="setting.php"
-                           class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
-                            <span
-                                class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">⚙️</span>
-                            <span class="text-sm font-medium">Setting</span>
-                        </a>
-                    </li>
+                    <!--Tab Bar-->
+                    <li><a href="HOME.php"     class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">🏠</span><span class="text-sm font-medium">Home</span></a></li>
+                    <li><a href="WISHLIST.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">❤️</span><span class="text-sm font-medium">Wishlist </span></a></li>
+                    <li class="bg-red-50 rounded-lg"><a href="checkout.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-primary">💳</span><span class="text-sm font-medium">Checkout</span></a></li>
+                    <li><a href="preach.php"   class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">📜</span><span class="text-sm font-medium">Preach History</span></a></li>
+                    <li><a href="contact.php"  class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💬</span><span class="text-sm font-medium">Contact us</span></a></li>
+                    <li><a href="setting.php"  class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">⚙️</span><span class="text-sm font-medium">Setting</span></a></li>
                 </ul>
             </nav>
         </div>
@@ -139,10 +117,12 @@ session_start();
                         $cart = $_SESSION['cart'] ?? [];
                         $totalQty = 0;
 
-                        if (isset($_SESSION['buy_now_item'])) {
+                        if ($mode === 'buy_now' && $buyNow) {
                             $totalQty = 1;
                         } elseif (!empty($cart)) {
                             $totalQty = array_sum(array_column($cart, 'quantity'));
+                        } else {
+                            $totalQty = 0;
                         }
                         ?>
 
@@ -163,15 +143,12 @@ session_start();
                         $subprice = 0;
 
                         // CASE 1: Buy Now flow
-                        if (isset($_SESSION['buy_now_item'])) {
-                            $item = $_SESSION['buy_now_item'];
+                        if ($mode === 'buy_now' && $buyNow) {
+                            $item     = $buyNow;
                             $itemname = htmlspecialchars($item["name"]);
-                            $img = htmlspecialchars($item["image"]);
-                            $subprice = $item["price"];
-                            $qty = 1;
-
-                            // optional: clear it so refresh doesn't duplicate
-                            unset($_SESSION['buy_now_item']);
+                            $img      = htmlspecialchars($item["image"]);
+                            $subprice = (float)$item["price"];
+                            $qty      = 1;
                             ?>
                             <div class="grid grid-cols-4 items-center py-4 border-b border-soft last:border-b-0">
                                 <div class="flex items-center gap-4 col-span-2">
@@ -245,10 +222,21 @@ session_start();
                             <div class="flex justify-between">
                                 <p class="text-gray-600">Shipping Estimate</p>
                                 <?php
-                                $minimum = 100;
+                                $minimum  = 100;
                                 $shipping = ($subprice >= $minimum || $subprice == 0) ? 0 : 3.50;
-                                $tax = number_format(($subprice + $shipping) * 0.07, 2);
-                                $total = number_format($subprice + $shipping + $tax, 2);
+
+                                $taxBase = $subprice + $shipping;
+                                $tax = round($taxBase * 0.07, 2); 
+
+                                $subtotal = $subprice + $shipping + $tax;         
+                                $discountAmount = 0.0;      
+
+                                if ($couponId !== null && $discountRaw > 0 && $subtotal > $min_coupon) {
+                                    $discountAmount = round($subtotal * ($discountRaw / 100), 2);
+                                }
+
+                                $total = $subtotal - $discountAmount;
+
                                 ?>
                                 <?php if ($subprice > $minimum): ?>
                                     <p class="font-medium">Free</p>
@@ -261,13 +249,29 @@ session_start();
 
                             <div class="flex justify-between">
                                 <p class="text-gray-600">Tax (7%)</p>
-                                <p class="font-medium">$<?= $tax ?></p>
+                                <p class="font-medium">$<?= number_format($tax, 2) ?></p>
                             </div>
+
+                            <!-- Discount Code -->
+                            <form class="flex justify-between items-center mt-2">
+                                <p class="text-gray-600">Coupon Code</p>
+                                <input 
+                                    type="text" 
+                                    name="coupon"
+                                    placeholder="Enter code"
+                                    class="py-1 px-2 w-32 text-center rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                >
+                                <button type="submit"
+                                    class="px-3 py-1 text-xs font-semibold rounded-md bg-primary text-white hover:bg-accent">
+                                    Apply
+                                </button>
+                            </form>
 
                             <div class="flex justify-between font-bold text-lg border-t pt-3 mt-3">
                                 <p>Total (Tax incl.)</p>
-                                <p class="text-primary">$<?= $total ?></p>
+                                <p class="text-primary">$<?= number_format($total, 2) ?></p>
                             </div>
+
                         </div>
                     </div>
 
@@ -306,8 +310,20 @@ session_start();
                             </div>
                         </div>
 
+                        <?php
+                        // decide which checkout mode this page is using
+                        $checkoutMode = isset($_SESSION['buy_now_item']) ? 'buy_now' : 'cart';
+                        ?>
+
                         <!-- PAYMENT FORMS -->
-                        <form class="space-y-4">
+                        <form action="after_checkout.php" method="POST" class="space-y-4">
+                            <input type="hidden" name="subtotal" value="<?= htmlspecialchars($subtotal) ?>">
+                            <input type="hidden" name="total" value="<?= htmlspecialchars($total) ?>">
+                            <input type="hidden" name="payment_type" id="payment_type" value="qr"> 
+                            <input type="hidden" name="couponid" id="couponid" value="<?= htmlspecialchars($couponId ?? '') ?>">
+                            <input type="hidden" name="discount_percent" id="couponcode" value="<?= htmlspecialchars($discountRaw) ?>">
+                            <input type="hidden" name="coupon_code"   value="<?= htmlspecialchars($couponCheck) ?>">
+                            <input type="hidden" name="mode" value="<?= $mode ?>">
 
                             <!-- QR SECTION -->
                             <div id="section-qr" class="space-y-3">
@@ -317,7 +333,7 @@ session_start();
                                 <div
                                     class="w-full bg-white rounded-xl p-3 flex items-center justify-center shadow-inner">
                                     <!-- Replace with your real QR image -->
-                                    <img src="asset/qr-payment.png" alt="QR Code"
+                                    <img src="asset/QR CODE.png" alt="QR Code"
                                          class="w-40 h-40 object-contain">
                                 </div>
                                 <p class="text-xs mt-2 opacity-80 text-center">
@@ -376,15 +392,13 @@ session_start();
 
                             <!-- PAY BUTTON -->
                             <button id="paynow"
-                                    class="w-full py-3 mt-6 font-semibold rounded-md shadow-lg transition
-                                    <?= $subprice == 0 ? 'bg-white/60 text-primary/50 cursor-not-allowed' : 'bg-white text-primary hover:bg-gray-100' ?>"
-                                    <?= $subprice == 0 ? 'disabled' : '' ?>>
-                                Pay Now $<?= $total ?>
+                                class="w-full py-3 mt-6 font-semibold rounded-md shadow-lg transition
+                                <?= $subprice == 0 ? 'bg-white/60 text-primary/50 cursor-not-allowed' : 'bg-white text-primary hover:bg-gray-100' ?>"
+                                <?= $subprice == 0 ? 'disabled' : '' ?>>
+                                Pay Now $<?= number_format($total, 2) ?>
                             </button>
-
                         </form>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -401,9 +415,15 @@ session_start();
     };
 
     let currentMethod = 'qr'; // default
+    const paymentTypeInput = document.getElementById('payment_type');
 
     function setMethod(method) {
         currentMethod = method;
+
+        // update hidden input for form
+        if (paymentTypeInput) {
+            paymentTypeInput.value = method;   // "qr", "card", or "cash"
+        }
 
         // toggle sections
         Object.keys(sections).forEach(key => {

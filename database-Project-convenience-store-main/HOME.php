@@ -2,54 +2,68 @@
 session_start();
 require_once("userconnect.php");
 
-$viewAll = isset($_GET['view']) && $_GET['view'] === 'all';
+$seeAll = isset($_GET['see']) && $_GET['see'] === 'all';
 $Cateall = isset($_GET['category']) && $_GET['category'] === 'all';
+$search = $_GET['search'] ?? '';
 
 // --- PRODUCT DATA ARRAYS ---
 // Only the most expensive 
-$heroq = "SELECT * FROM products 
-          WHERE status != 'Inactive'
-          ORDER BY price DESC
-          LIMIT 1";
+$heroProduct = null;
+$heroId = 0;
 
-$resultHero = $mysqli->query($heroq);
+if ($search === '') {
+    $heroq = "SELECT * FROM products 
+            WHERE status != 'Inactive'
+            ORDER BY price DESC
+            LIMIT 1";
 
-if (!$resultHero){
-    echo "Select failed. Error: " . $mysqli->error;
-    return false;
-}
+    $resultHero = $mysqli->query($heroq);
 
-while ($rowHero = $resultHero->fetch_assoc()) {
-    $statusRaw = $rowHero['status']; 
-    if ($statusRaw === 'Active') {
-        $statusDisplay = 'In Stock';
-    } elseif ($statusRaw === 'Out of Stock') {
-        $statusDisplay = 'Out of Stock';
+    if (!$resultHero){
+        echo "Select failed. Error: " . $mysqli->error;
+        return false;
     }
 
-    $heroProduct = [
-        'id'            => (int)$rowHero['product_id'],
-        'name'          => $rowHero['product_name'],
-        'price'         => (float)$rowHero['price'],
-        'quantity'      => $rowHero['stock_qty'],
-        'detail'        => 'Rich, dark chocolate with sea salt flakes.',
-        'category'      => $rowHero['category'],
-        'status_raw'    => $statusRaw,
-        'status_label'  => $statusDisplay,
-        'image'         => $rowHero['image_path'] ?? 'asset/default.png'
-    ];
+    while ($rowHero = $resultHero->fetch_assoc()) {
+        $statusRaw = $rowHero['status']; 
+        if ($statusRaw === 'Active') {
+            $statusDisplay = 'In Stock';
+        } elseif ($statusRaw === 'Out of Stock') {
+            $statusDisplay = 'Out of Stock';
+        }
+
+        $heroProduct = [
+            'id'            => (int)$rowHero['product_id'],
+            'name'          => $rowHero['product_name'],
+            'price'         => (float)$rowHero['price'],
+            'quantity'      => $rowHero['stock_qty'],
+            'detail'        => 'Rich, dark chocolate with sea salt flakes.',
+            'category'      => $rowHero['category'],
+            'status_raw'    => $statusRaw,
+            'status_label'  => $statusDisplay,
+            'image'         => $rowHero['image_path'] ?? 'asset/default.png'
+        ];
+    }
+    $heroId = $heroProduct['id'];
 }
-$heroId = $heroProduct['id'];
 
 // Select all products except the most expensive from DB
 $q =  "SELECT * FROM products
        WHERE product_id != $heroId
-       AND status != 'Inactive'
-       ORDER BY stock_qty DESC";
+       AND status != 'Inactive'";
 
+
+// Add search filter
+if (!empty($search)) {
+    $searchSafe = $mysqli->real_escape_string($search);
+    $q .= " AND product_name LIKE '%$searchSafe%'";
+}
+
+// Order results
+$q .= " ORDER BY stock_qty DESC";
 
 // Collect 16 popular products from DB
-if (!$viewAll) {
+if (!$seeAll) {
     $q .= " LIMIT 16";
 }
 
@@ -71,14 +85,14 @@ while ($row = $result->fetch_assoc()) {
     }
 
     $baseProducts[] = [
-        'id'       => (int)$row["product_id"],
-        'name'     => $row['product_name'],
-        'price'    => (float)$row['price'],
-        'quantity' => (int)$row['stock_qty'],
-        'category' => $row['category'],
-        'status_raw'    => $statusRaw1,
-        'status_label'  => $statusDisplay1,
-        'image'    => $row['image_path'] ?? 'asset/default.png'
+        'id'           => (int)$row["product_id"],
+        'name'         => $row['product_name'],
+        'price'        => (float)$row['price'],
+        'quantity'     => (int)$row['stock_qty'],
+        'category'     => $row['category'],
+        'status_raw'   => $statusRaw1,
+        'status_label' => $statusDisplay1,
+        'image'        => $row['image_path'] ?? 'asset/default.png'
     ];
 }
 
@@ -136,10 +150,12 @@ $wishlist = $_SESSION['wishlist'] ?? [];
         <aside class="w-64 bg-sidebar p-4 sticky top-0 h-screen overflow-y-auto">
             <div class="bg-white border border-blue-300 rounded-xl p-4 shadow-sm flex flex-col h-full">
                 <div class="flex items-center gap-3 mb-6">
-                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-400 text-white flex items-center justify-center text-lg font-bold"><img src="asset/2960679-2182.png"></div>
-                    <div>
-                        <div class="text-lg font-semibold">Convenience<br/><span class="text-sm text-gray-500">Store</span></div>
-                    </div>
+                    <a href="HOME.php" class="flex items-center gap-3">
+                        <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-400 text-white flex items-center justify-center text-lg font-bold"><img src="asset/2960679-2182.png"></div>
+                        <div>
+                            <div class="text-lg font-semibold">Convenience<br/><span class="text-sm text-gray-500">Store</span></div>
+                        </div>
+                    </a>
                 </div>
 
                 <nav class="flex-1">
@@ -148,10 +164,9 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                         <li class="bg-red-50 rounded-lg"><a href="HOME.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-primary">🏠</span><span class="text-sm font-medium">Home</span></a></li>
                         <li><a href="WISHLIST.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">❤️</span><span class="text-sm font-medium">Wishlist </span></a></li>
                         <li><a href="checkout.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💳</span><span class="text-sm font-medium">Checkout</span></a></li>
-                        <li><a href="userpage.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">👤</span><span class="text-sm font-medium">Profile</span></a></li>
-                        <li><a href="preach.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">📜</span><span class="text-sm font-medium">Preach History</span></a></li>
-                        <li><a href="contact.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💬</span><span class="text-sm font-medium">Contact us</span></a></li>
-                        <li><a href="setting.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">⚙️</span><span class="text-sm font-medium">Setting</span></a></li>
+                        <li><a href="preach.php"   class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">📜</span><span class="text-sm font-medium">Preach History</span></a></li>
+                        <li><a href="contact.php"  class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💬</span><span class="text-sm font-medium">Contact us</span></a></li>
+                        <li><a href="setting.php"  class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">⚙️</span><span class="text-sm font-medium">Setting</span></a></li>
                     </ul>
                 </nav>
             </div>
@@ -169,16 +184,25 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                                 <h1 class="text-2xl font-bold" style="font-family: 'PT Serif', Georgia, serif;">Convenience Store</h1>
                                 <div class="text-xs text-gray-500">No.1 Shop</div>
                             </div>
+                            <!-- Search Bar -->
                             <div class="flex items-center gap-3">
                                 <div class="relative">
                                     <div class="relative ">
-                                        <input type="text" placeholder="Search Product" class="py-2 pl-3 pr-10 text-sm focus:outline-none rounded-l-md w-64">
+                                        <form method="GET" action="HOME.php" class="relative">
+                                            <input 
+                                                type="text" 
+                                                name="search"
+                                                value="<?= isset($_GET['search']) ? htmlspecialchars($_GET['search']) : '' ?>"
+                                                placeholder="Search Product"
+                                                class="py-2 pl-3 pr-10 text-sm focus:outline-none rounded-l-md w-64"
+                                            >
+                                        </form>
                                     </div>
                                 </div>
                             </div>
                         </div>
 
-                        <?php if (!$viewAll): ?>
+                        <?php if (!$seeAll && $search === '' && $heroProduct): ?>
                         <!-- HERO PRODUCT (only show when NOT view=all) -->
                         <div class="bg-white rounded-2xl shadow-card p-6 mb-6 relative">
                             <div class="grid grid-cols-12 gap-6 items-center">
@@ -214,6 +238,7 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                                     <div class="mt-4 flex items-center gap-3">
                                         <!-- Add to cart -->
                                         <form id="hero-add-form" action="ADDTOCART.php" method="POST">
+                                            <input type="hidden" name="product_id" value="<?= $heroProduct['id'] ?>">
                                             <input type="hidden" name="product_name" value="<?= htmlspecialchars($heroProduct['name']) ?>">
                                             <input type="hidden" name="product_price" value="<?= $heroProduct['price'] ?>">
                                             <input type="hidden" name="product_image" value="<?= htmlspecialchars($heroProduct['image']) ?>">
@@ -226,6 +251,7 @@ $wishlist = $_SESSION['wishlist'] ?? [];
 
                                         <!-- Buy now -->
                                         <form action="ADDTOCART.php" method="POST">
+                                            <input type="hidden" name="product_id" value="<?= $heroProduct['id'] ?>">
                                             <input type="hidden" name="product_name" value="<?= htmlspecialchars($heroProduct['name']) ?>">
                                             <input type="hidden" name="product_price" value="<?= $heroProduct['price'] ?>">
                                             <input type="hidden" name="product_image" value="<?= htmlspecialchars($heroProduct['image']) ?>">
@@ -251,7 +277,6 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                                                 <i class="<?= $heroInWishlist ? 'fa-solid' : 'fa-regular' ?> fa-heart"></i>
                                             </button>
                                         </form>
-
                                     </div>
                                 </div>
                             </div>
@@ -262,15 +287,26 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                         <section class="mb-8">
                             <div class="flex items-center justify-between mb-4">
                                 <h2 class="text-lg font-semibold">
-                                    <?= $viewAll ? 'All The Product' : 'Explore The Popular Product' ?>
+                                    <?php
+                                    if (!empty($search)) {
+                                        $title = "Search results for: " . htmlspecialchars($search);
+                                    } elseif ($seeAll) {
+                                        $title = "All The Popular Product";
+                                    } else {
+                                        $title = "Explore The Popular Product";
+                                    }
+                                    ?>
+                                    <?= $title ?>
                                 </h2>
-                                <?php if (!$viewAll): ?>
-                                    <a href="HOME.php?view=all" class="text-sm text-gray-500">See all</a>
+                                <?php if (!$seeAll): ?>
+                                    <a href="HOME.php?see=all" class="text-sm text-gray-500">See all</a>
                                 <?php else : ?>
                                     <a href="HOME.php" class="text-sm text-gray-500">Show Top 16</a>
                                 <?php endif; ?>
                             </div>
-
+                            <?php if (empty($popularProducts)): ?>
+                                <p class="text-gray-500 text-sm">No products found for "<?= htmlspecialchars($search) ?>".</p> 
+                            <?php endif; ?>
                             <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
                                 
                                 <?php foreach ($popularProducts as $index => $product): 
@@ -301,6 +337,7 @@ $wishlist = $_SESSION['wishlist'] ?? [];
                                             <div class="flex items-center gap-20">
                                                 <!-- Add to cart -->
                                                 <form action="ADDTOCART.php" method="POST" class="inline-block">
+                                                    <input type="hidden" name="product_id" value="<?= $product['id'] ?>">
                                                     <input type="hidden" name="product_name" value="<?= htmlspecialchars($product['name']) ?>">
                                                     <input type="hidden" name="product_price" value="<?= $product['price'] ?>">
                                                     <input type="hidden" name="product_image" value="<?= htmlspecialchars($product['image']) ?>">

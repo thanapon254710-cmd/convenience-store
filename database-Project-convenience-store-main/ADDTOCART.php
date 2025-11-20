@@ -5,6 +5,7 @@ if (!isset($_SESSION['cart'])) {
     $_SESSION['cart'] = [];
 }
 
+$id         = $_POST['product_id'] ?? null;
 $name       = $_POST['product_name']  ?? null;
 $price      = isset($_POST['product_price']) ? (float)$_POST['product_price'] : 0;
 $image      = $_POST['product_image'] ?? 'asset/example-product-1.png';
@@ -14,6 +15,7 @@ $return     = $_POST['return']        ?? null;
 if ($name) {
     // find existing item
     if ($actionType !== 'buy_now') {
+        $_SESSION['checkout_mode'] = 'cart';
         $foundIndex = null;
         foreach ($_SESSION['cart'] as $index => $item) {
             if ($item['name'] === $name && (float)$item['price'] === $price) {
@@ -24,6 +26,7 @@ if ($name) {
 
         if ($foundIndex === null) {
             $_SESSION['cart'][] = [
+                'id'       => $id,
                 'name'     => $name,
                 'price'    => $price,
                 'quantity' => 1,
@@ -40,11 +43,14 @@ if ($name) {
         }
     } else {
         $_SESSION['buy_now_item'] = [
+            'id'       => $id,
             'name'     => $name,
             'price'    => $price,
             'quantity' => 1,
             'image'    => $image
         ];
+        $_SESSION['checkout_mode'] = 'buy_now'; 
+
         $return = 'checkout.php';
     }
 }
