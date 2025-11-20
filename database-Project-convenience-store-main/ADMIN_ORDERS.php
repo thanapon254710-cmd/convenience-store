@@ -1,56 +1,124 @@
 <?php
-
 session_start();
-
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Admin') {
     header("Location: index.php");
     exit;
 }
+
 require_once 'connect.php';
 
 $message = '';
 
-// Update order status
+// Allowed order statuses (used for dropdowns + validation)
+$allowedStatuses = ['Pending', 'Processing', 'Packed', 'Delivered', 'Completed', 'Cancelled'];
+
+// -------------------------
+// 1) Update order status
+// -------------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['order_id'], $_POST['status'])) {
-    $id = (int)$_POST['order_id'];
+    $id     = (int)$_POST['order_id'];
     $status = $_POST['status'];
 
-    $stmt = $mysqli->prepare("UPDATE orders SET status = ? WHERE order_id = ?");
-    if ($stmt) {
-        $stmt->bind_param('si', $status, $id);
-        if ($stmt->execute()) {
-            $message = 'Order status updated.';
+    if (in_array($status, $allowedStatuses, true)) {
+        $stmt = $mysqli->prepare("UPDATE orders SET status = ? WHERE order_id = ?");
+        if ($stmt) {
+            $stmt->bind_param('si', $status, $id);
+            if ($stmt->execute()) {
+                $message = 'Order status updated.';
+            } else {
+                $message = 'Update failed: ' . $stmt->error;
+            }
+            $stmt->close();
         } else {
-            $message = 'Update failed: ' . $stmt->error;
+            $message = 'DB error: ' . $mysqli->error;
         }
-        $stmt->close();
     } else {
-        $message = 'DB error: ' . $mysqli->error;
+        $message = 'Invalid status selected.';
     }
 }
 
-// Load orders
+// -------------------------
+// 2) Filters & search
+// -------------------------
+$selectedStatus = $_GET['status'] ?? 'all';
+$search         = trim($_GET['search'] ?? '');
+
+// -------------------------
+// 3) Summary cards data
+// -------------------------
+$stats = [
+    'total_orders'     => 0,
+    'open_orders'      => 0,
+    'completed_orders' => 0,
+    'cancelled_orders' => 0,
+    'total_revenue'    => 0.00,
+];
+
+$statsSql = "
+    SELECT
+        COUNT(*) AS total_orders,
+        SUM(CASE WHEN status IN ('Pending','Processing','Packed','Delivered') THEN 1 ELSE 0 END) AS open_orders,
+        SUM(CASE WHEN status = 'Completed' THEN 1 ELSE 0 END) AS completed_orders,
+        SUM(CASE WHEN status = 'Cancelled' THEN 1 ELSE 0 END) AS cancelled_orders,
+        IFNULL(SUM(total_amount),0) AS total_revenue
+    FROM orders
+";
+
+if ($res = $mysqli->query($statsSql)) {
+    if ($row = $res->fetch_assoc()) {
+        $stats['total_orders']     = (int)$row['total_orders'];
+        $stats['open_orders']      = (int)$row['open_orders'];
+        $stats['completed_orders'] = (int)$row['completed_orders'];
+        $stats['cancelled_orders'] = (int)$row['cancelled_orders'];
+        $stats['total_revenue']    = (float)$row['total_revenue'];
+    }
+    $res->close();
+}
+
+// -------------------------
+// 4) Load orders with filters
+// -------------------------
 $orders = [];
+$where  = "WHERE 1=1 ";
+
+if ($selectedStatus !== 'all' && in_array($selectedStatus, $allowedStatuses, true)) {
+    $statusSafe = $mysqli->real_escape_string($selectedStatus);
+    $where     .= " AND o.status = '$statusSafe' ";
+}
+
+if ($search !== '') {
+    $searchSafe = $mysqli->real_escape_string($search);
+    $orderId    = (int)$search;
+    $where     .= " AND (o.order_id = $orderId OR u.username LIKE '%$searchSafe%') ";
+}
+
 $q = "
     SELECT o.order_id, o.order_date, o.total_amount, o.status, o.payment_type,
            u.username
     FROM orders o
     LEFT JOIN users u ON o.user_id = u.user_id
+    $where
     ORDER BY o.order_date DESC, o.order_id DESC
 ";
+
 if ($res = $mysqli->query($q)) {
     while ($row = $res->fetch_assoc()) {
         $orders[] = $row;
     }
+    $res->close();
 }
 
-// If order detail requested
+// -------------------------
+// 5) Order detail panel
+// -------------------------
 $orderDetails = [];
-$detailOrder = null;
+$detailOrder  = null;
+
 if (isset($_GET['order_id'])) {
     $oid = (int)$_GET['order_id'];
-    // Order header
+
+    // Header
     $stmt = $mysqli->prepare("
         SELECT o.*, u.username
         FROM orders o
@@ -68,8 +136,9 @@ if (isset($_GET['order_id'])) {
     $stmt = $mysqli->prepare("
         SELECT od.*, p.product_name
         FROM orderdetails od
-        JOIN products p ON od.product_id = p.product_id
+        LEFT JOIN products p ON od.product_id = p.product_id
         WHERE od.order_id = ?
+        ORDER BY od.order_id, od.product_id
     ");
     if ($stmt) {
         $stmt->bind_param('i', $oid);
@@ -106,10 +175,30 @@ if (isset($_GET['order_id'])) {
                     },
                     boxShadow: {
                         'soft-lg': '0 14px 30px rgba(9,18,40,0.08)',
-                        'card': '0 10px 20px rgba(9,18,40,0.06)'
+                        'card': '0 10px 30px rgba(15,23,42,0.08)'
                     }
                 }
             }
+        }
+    </script>
+
+    <!-- SweetAlert for logout -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmLogout() {
+            Swal.fire({
+                title: "Confirm Logout",
+                text: "Are you sure?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#b94a4a",
+                cancelButtonColor: "#6b7280",
+                confirmButtonText: "Logout",
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    window.location = 'logout.php';
+                }
+            });
         }
     </script>
 </head>
@@ -155,7 +244,7 @@ if (isset($_GET['order_id'])) {
                         </a>
                     </li>
                     <li>
-                        <a href="logout.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
+                        <a href="#" onclick="confirmLogout()" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
                             <span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">🚪</span>
                             <span class="text-sm font-medium">Logout</span>
                         </a>
@@ -171,7 +260,7 @@ if (isset($_GET['order_id'])) {
             <div class="flex items-center justify-between mb-6">
                 <div>
                     <h1 class="text-2xl font-bold" style="font-family: 'PT Serif', Georgia, serif;">Orders</h1>
-                    <div class="text-xs text-gray-500">View and manage customer orders</div>
+                    <div class="text-xs text-gray-500">View, filter and manage customer orders</div>
                 </div>
             </div>
 
@@ -181,11 +270,73 @@ if (isset($_GET['order_id'])) {
                 </div>
             <?php endif; ?>
 
+            <!-- Summary cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white rounded-2xl shadow-card p-4 border border-gray-100">
+                    <div class="text-xs text-gray-500 mb-1">Total Orders</div>
+                    <div class="text-xl font-semibold"><?= (int)$stats['total_orders'] ?></div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-card p-4 border border-gray-100">
+                    <div class="text-xs text-gray-500 mb-1">Open Orders</div>
+                    <div class="text-xl font-semibold text-amber-600"><?= (int)$stats['open_orders'] ?></div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-card p-4 border border-gray-100">
+                    <div class="text-xs text-gray-500 mb-1">Completed</div>
+                    <div class="text-xl font-semibold text-green-600"><?= (int)$stats['completed_orders'] ?></div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-card p-4 border border-gray-100">
+                    <div class="text-xs text-gray-500 mb-1">Total Revenue</div>
+                    <div class="text-xl font-semibold text-primary">฿<?= number_format($stats['total_revenue'], 2) ?></div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <form method="get" class="bg-white rounded-2xl shadow-card p-4 mb-6 flex flex-wrap gap-4 items-end">
+                <div class="flex flex-col">
+                    <label class="text-xs text-gray-500 mb-1">Search (Order ID or Username)</label>
+                    <input
+                        type="text"
+                        name="search"
+                        value="<?= htmlspecialchars($search) ?>"
+                        class="border border-outline rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                        placeholder="e.g. 12 or kanadae"
+                    >
+                </div>
+
+                <div class="flex flex-col">
+                    <label class="text-xs text-gray-500 mb-1">Status</label>
+                    <select
+                        name="status"
+                        class="border border-outline rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                    >
+                        <option value="all" <?= $selectedStatus === 'all' ? 'selected' : '' ?>>All statuses</option>
+                        <?php foreach ($allowedStatuses as $st): ?>
+                            <option value="<?= $st ?>" <?= $st === $selectedStatus ? 'selected' : '' ?>>
+                                <?= $st ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-primary text-white text-sm hover:bg-accent">
+                        Apply
+                    </button>
+                    <a href="ADMIN_ORDERS.php" class="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">
+                        Clear
+                    </a>
+                </div>
+            </form>
+
+            <!-- Content layout: table + detail -->
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <!-- Orders list -->
+                <!-- Orders table -->
                 <div class="bg-white rounded-2xl shadow-card p-4">
-                    <h2 class="text-lg font-semibold mb-3">All Orders</h2>
-                    <div class="max-h-[480px] overflow-y-auto pr-1">
+                    <div class="flex items-center justify-between mb-3">
+                        <h2 class="text-lg font-semibold">Order List</h2>
+                    </div>
+
+                    <div class="overflow-x-auto">
                         <table class="w-full text-sm">
                             <thead class="border-b text-gray-500 sticky top-0 bg-white">
                             <tr>
@@ -201,7 +352,7 @@ if (isset($_GET['order_id'])) {
                             <?php if (empty($orders)): ?>
                                 <tr>
                                     <td colspan="6" class="py-4 text-center text-gray-400">
-                                        No orders yet.
+                                        No orders found.
                                     </td>
                                 </tr>
                             <?php else: ?>
@@ -211,27 +362,34 @@ if (isset($_GET['order_id'])) {
                                         <td class="py-2 text-gray-700">
                                             <?= htmlspecialchars($o['username'] ?? 'Guest') ?>
                                         </td>
-                                        <td class="py-2 text-gray-500"><?= htmlspecialchars($o['order_date']) ?></td>
+                                        <td class="py-2 text-gray-500 text-xs">
+                                            <?= htmlspecialchars($o['order_date']) ?>
+                                        </td>
                                         <td class="py-2 text-right font-semibold">
                                             ฿<?= number_format($o['total_amount'], 2) ?>
                                         </td>
                                         <td class="py-2 text-right">
                                             <form method="post" class="inline-flex items-center gap-1">
                                                 <input type="hidden" name="order_id" value="<?= (int)$o['order_id'] ?>">
-                                                <select name="status" class="border rounded px-1 py-0.5 text-xs">
-                                                    <?php foreach (['Pending','Processing','Packed','Delivered','Completed','Cancelled'] as $st): ?>
+                                                <select
+                                                    name="status"
+                                                    class="border rounded px-1 py-0.5 text-xs"
+                                                >
+                                                    <?php foreach ($allowedStatuses as $st): ?>
                                                         <option value="<?= $st ?>" <?= $st === $o['status'] ? 'selected' : '' ?>>
                                                             <?= $st ?>
                                                         </option>
                                                     <?php endforeach; ?>
                                                 </select>
-                                                <button class="px-2 py-0.5 text-xs rounded bg-primary text-white hover:bg-accent">
+                                                <button
+                                                    class="px-2 py-0.5 text-xs rounded bg-primary text-white hover:bg-accent"
+                                                >
                                                     Save
                                                 </button>
                                             </form>
                                         </td>
                                         <td class="py-2 text-right">
-                                            <a href="ADMIN_ORDERS.php?order_id=<?= (int)$o['order_id'] ?>"
+                                            <a href="ADMIN_ORDERS.php?order_id=<?= (int)$o['order_id'] ?>&status=<?= urlencode($selectedStatus) ?>&search=<?= urlencode($search) ?>"
                                                class="text-xs text-primary underline">
                                                 View
                                             </a>
@@ -249,9 +407,11 @@ if (isset($_GET['order_id'])) {
                     <h2 class="text-lg font-semibold mb-3">Order Detail</h2>
 
                     <?php if (!$detailOrder): ?>
-                        <p class="text-sm text-gray-400">Select an order from the left to see details.</p>
+                        <p class="text-sm text-gray-400">
+                            Select an order from the left to see details.
+                        </p>
                     <?php else: ?>
-                        <div class="mb-3 text-sm">
+                        <div class="mb-3 text-sm space-y-1">
                             <div><span class="font-semibold">Order ID:</span> #<?= (int)$detailOrder['order_id'] ?></div>
                             <div><span class="font-semibold">Customer:</span> <?= htmlspecialchars($detailOrder['username'] ?? 'Guest') ?></div>
                             <div><span class="font-semibold">Date:</span> <?= htmlspecialchars($detailOrder['order_date']) ?></div>

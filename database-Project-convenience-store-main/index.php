@@ -12,13 +12,17 @@ if (isset($_POST['submit'])) {
         $error = "Please enter both username and password.";
     } else {
 
-        $q = $mysqli->prepare("
-            SELECT user_id, username, role, points 
+        // IMPORTANT: passwords in DB are AES_ENCRYPT(password, SHA1('password'))
+        // So here we DECRYPT and compare with the plain text the user typed.
+        $sql = "
+            SELECT user_id, username, role, points
             FROM users
             WHERE username = ?
-              AND password = AES_ENCRYPT(?, SHA1('password'))
+              AND CAST(AES_DECRYPT(password, SHA1('password')) AS CHAR(50)) = ?
             LIMIT 1
-        ");
+        ";
+
+        $q = $mysqli->prepare($sql);
 
         if (!$q) {
             $error = "Prepare failed: " . $mysqli->error;
@@ -28,26 +32,15 @@ if (isset($_POST['submit'])) {
             $result = $q->get_result();
 
             if ($row = $result->fetch_assoc()) {
-
+                // LOGIN SUCCESS
                 $_SESSION['user_id']  = $row['user_id'];
                 $_SESSION['username'] = $row['username'];
                 $_SESSION['role']     = $row['role'];
                 $_SESSION['points']   = $row['points'];
 
-                // IMPORTANT: Your MySQL accounts have NO PASSWORD
-                // always use ONE database account
-$mysqli = new mysqli('localhost', 'root', 'root', 'convenience_store');
-if ($mysqli->connect_errno) {
-    die("Database connection failed: " . $mysqli->connect_error);
-}
-
-
-                if ($mysqli->connect_errno) {
-                    die("Database connection failed: " . $mysqli->connect_error);
-                }
-
-                $_SESSION['db_username'] = $dbUser;
-                $_SESSION['db_password'] = $dbPass;
+                // We now ALWAYS use the same DB user from connect.php (root/root),
+                // so we don't need db_username/db_password any more.
+                // Other pages will just use userconnect.php -> connect.php.
 
                 if ($row['role'] === 'Admin') {
                     header("Location: ADMIN_HOME.php");
@@ -57,7 +50,6 @@ if ($mysqli->connect_errno) {
                     header("Location: HOME.php");
                 }
                 exit;
-
             } else {
                 $error = "Invalid username or password.";
             }
@@ -89,11 +81,23 @@ if ($mysqli->connect_errno) {
                     <p class="error"><?= htmlspecialchars($error) ?></p>
                 <?php endif; ?>
 
-                <label>Username</label>
-                <input type="text" name="username" placeholder="Enter your username" required>
+                <label for="username">Username</label>
+                <input
+                    id="username"
+                    type="text"
+                    name="username"
+                    placeholder="Enter your username"
+                    required
+                >
 
-                <label>Password</label>
-                <input type="password" name="passwd" placeholder="Enter your password" required>
+                <label for="passwd">Password</label>
+                <input
+                    id="passwd"
+                    type="password"
+                    name="passwd"
+                    placeholder="Enter your password"
+                    required
+                >
 
                 <button type="submit" name="submit" class="primary">Login</button>
 

@@ -1,17 +1,16 @@
 <?php
-session_start();
+// userconnect.php
+// Shared DB connection for logged-in pages
 
-if (!isset($_SESSION["db_username"]) || !isset($_SESSION["db_password"])) {
-    header("Location: index.php");
-    exit;
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
 }
 
-$user = $_SESSION["db_username"];
-$pass = $_SESSION["db_password"];
+// Optional: if you want to protect pages, they can still check user_id/role themselves
+// Example (DON'T add here if you already check inside each page):
+// if (!isset($_SESSION['user_id'])) {
+//     header("Location: index.php");
+//     exit;
+// }
 
-$mysqli = new mysqli('localhost', $user, $pass, 'convenience_store');
-
-if ($mysqli->connect_errno) {
-    die("Database connection failed: " . $mysqli->connect_error);
-}
-?>
+require_once 'connect.php';   // $mysqli is created here (root / root / convenience_store)

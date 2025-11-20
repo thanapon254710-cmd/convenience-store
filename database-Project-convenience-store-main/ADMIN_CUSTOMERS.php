@@ -1,29 +1,71 @@
 <?php
 session_start();
 
-
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Admin') {
     header("Location: index.php");
     exit;
 }
 require_once 'connect.php';
 
+// Filters
+$search         = trim($_GET['search'] ?? '');
+$onlyWithOrders = isset($_GET['only_with_orders']) && $_GET['only_with_orders'] === '1';
+
 // Load customers + stats
 $customers = [];
 $q = "
-    SELECT u.user_id, u.username, u.email, u.phone_number, u.points,
+    SELECT u.user_id,
+           u.username,
+           u.email,
+           u.phone_number,
+           u.points,
            COUNT(DISTINCT o.order_id) AS order_count,
            IFNULL(SUM(p.amount_paid),0) AS total_spent
     FROM users u
-    LEFT JOIN orders o ON u.user_id = o.user_id
+    LEFT JOIN orders   o ON u.user_id = o.user_id
     LEFT JOIN payments p ON o.order_id = p.order_id
     WHERE u.role = 'Customer'
     GROUP BY u.user_id, u.username, u.email, u.phone_number, u.points
-    ORDER BY u.username
+    ORDER BY total_spent DESC, u.username ASC
 ";
+
 if ($res = $mysqli->query($q)) {
     while ($row = $res->fetch_assoc()) {
         $customers[] = $row;
+    }
+    $res->close();
+}
+
+// Apply search + onlyWithOrders in PHP for simplicity
+$filteredCustomers = [];
+foreach ($customers as $c) {
+    if ($onlyWithOrders && (int)$c['order_count'] === 0) {
+        continue;
+    }
+
+    if ($search !== '') {
+        $haystack = strtolower(
+            ($c['username'] ?? '') . ' ' .
+            ($c['email'] ?? '') . ' ' .
+            ($c['phone_number'] ?? '')
+        );
+        if (strpos($haystack, strtolower($search)) === false) {
+            continue;
+        }
+    }
+
+    $filteredCustomers[] = $c;
+}
+
+// Summary stats (based on filtered list – feels natural while filtering)
+$totalCustomers        = count($filteredCustomers);
+$totalRevenueFromList  = 0.0;
+$customersWithOrders   = 0;
+
+foreach ($filteredCustomers as $c) {
+    $totalRevenueFromList += (float)$c['total_spent'];
+    if ((int)$c['order_count'] > 0) {
+        $customersWithOrders++;
     }
 }
 ?>
@@ -51,7 +93,7 @@ if ($res = $mysqli->query($q)) {
                     },
                     boxShadow: {
                         'soft-lg': '0 14px 30px rgba(9,18,40,0.08)',
-                        'card': '0 10px 20px rgba(9,18,40,0.06)'
+                        'card': '0 10px 30px rgba(15,23,42,0.08)'
                     }
                 }
             }
@@ -120,6 +162,59 @@ if ($res = $mysqli->query($q)) {
                 </div>
             </div>
 
+            <!-- Summary cards -->
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+                <div class="bg-white rounded-2xl shadow-card p-4 border border-gray-100">
+                    <div class="text-xs text-gray-500 mb-1">Total Customers (filtered)</div>
+                    <div class="text-xl font-semibold"><?= (int)$totalCustomers ?></div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-card p-4 border border-gray-100">
+                    <div class="text-xs text-gray-500 mb-1">Customers with Orders</div>
+                    <div class="text-xl font-semibold text-blue-600"><?= (int)$customersWithOrders ?></div>
+                </div>
+                <div class="bg-white rounded-2xl shadow-card p-4 border border-gray-100">
+                    <div class="text-xs text-gray-500 mb-1">Total Revenue (from list)</div>
+                    <div class="text-xl font-semibold text-primary">
+                        ฿<?= number_format($totalRevenueFromList, 2) ?>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Filters -->
+            <form method="get" class="bg-white rounded-2xl shadow-card p-4 mb-6 flex flex-wrap gap-4 items-end">
+                <div class="flex flex-col">
+                    <label class="text-xs text-gray-500 mb-1">Search (name / email / phone)</label>
+                    <input
+                        type="text"
+                        name="search"
+                        value="<?= htmlspecialchars($search) ?>"
+                        class="border border-outline rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                        placeholder="e.g. kanadae or 080..."
+                    >
+                </div>
+
+                <label class="inline-flex items-center gap-2 text-sm mt-1">
+                    <input
+                        type="checkbox"
+                        name="only_with_orders"
+                        value="1"
+                        <?= $onlyWithOrders ? 'checked' : '' ?>
+                        class="rounded border-outline"
+                    >
+                    <span class="text-gray-700">Show only customers who placed orders</span>
+                </label>
+
+                <div class="flex gap-2">
+                    <button type="submit" class="px-4 py-2 rounded-lg bg-primary text-white text-sm hover:bg-accent">
+                        Apply
+                    </button>
+                    <a href="ADMIN_CUSTOMERS.php" class="px-4 py-2 rounded-lg border text-sm hover:bg-gray-50">
+                        Clear
+                    </a>
+                </div>
+            </form>
+
+            <!-- Table -->
             <div class="bg-white rounded-2xl shadow-card p-4">
                 <table class="w-full text-sm">
                     <thead class="border-b text-gray-500">
@@ -134,14 +229,14 @@ if ($res = $mysqli->query($q)) {
                     </tr>
                     </thead>
                     <tbody>
-                    <?php if (empty($customers)): ?>
+                    <?php if (empty($filteredCustomers)): ?>
                         <tr>
                             <td colspan="7" class="py-4 text-center text-gray-400">
-                                No customers yet.
+                                No customers found.
                             </td>
                         </tr>
                     <?php else: ?>
-                        <?php foreach ($customers as $c): ?>
+                        <?php foreach ($filteredCustomers as $c): ?>
                             <tr class="border-b last:border-0">
                                 <td class="py-2"><?= (int)$c['user_id'] ?></td>
                                 <td class="py-2"><?= htmlspecialchars($c['username']) ?></td>
