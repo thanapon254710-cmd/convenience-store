@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 19, 2025 at 09:48 PM
+-- Generation Time: Nov 20, 2025 at 01:43 PM
 -- Server version: 5.7.24
 -- PHP Version: 8.2.14
 
@@ -21,64 +21,89 @@ SET time_zone = "+00:00";
 -- Database: `convenience_store`
 --
 
+-- Privileges for `admin`@`localhost`
+
+GRANT USAGE ON *.* TO 'admin'@'localhost';
+
+GRANT ALL PRIVILEGES ON `convenience\_store`.* TO 'admin'@'localhost';
+
+
+-- Privileges for `customer`@`localhost`
+
+GRANT USAGE ON *.* TO 'customer'@'localhost';
+
+GRANT SELECT, INSERT, UPDATE, EXECUTE, TRIGGER ON `convenience\_store`.* TO 'customer'@'localhost';
+
+
+-- Privileges for `staff`@`localhost`
+
+GRANT USAGE ON *.* TO 'staff'@'localhost';
+
+GRANT SELECT, INSERT, UPDATE, CREATE, REFERENCES, INDEX, ALTER, CREATE TEMPORARY TABLES, EXECUTE, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EVENT, TRIGGER ON `convenience\_store`.* TO 'staff'@'localhost';
+
 DELIMITER $$
 --
 -- Procedures
 --
-CREATE DEFINER=`root`@`localhost` PROCEDURE `process_payment` (IN `p_order_id` INT, IN `p_amount` DECIMAL(8,2), IN `p_method` VARCHAR(30))   BEGIN
-    INSERT INTO payments (order_id, payment_date, amount_paid, method)
-    VALUES (p_order_id, NOW(), p_amount, p_method);
-
-    UPDATE orders
-    SET status = 'Paid'
-    WHERE order_id = p_order_id;
-END$$
-
 CREATE DEFINER=`root`@`localhost` PROCEDURE `redeem_coupon` (IN `p_coupon_code` VARCHAR(30), IN `p_order_id` INT)   BEGIN
-    DECLARE v_discount DECIMAL(5,2);
+    DECLARE v_coupon_id    INT;
+    DECLARE v_discount     DECIMAL(5,2);
     DECLARE v_min_purchase DECIMAL(8,2);
-    DECLARE v_order_total DECIMAL(8,2);
-    DECLARE v_expiry DATE;
-    DECLARE v_status VARCHAR(20);
-    DECLARE v_msg VARCHAR(50);
+    DECLARE v_expiry       DATE;
+    DECLARE v_status       VARCHAR(20);
+    DECLARE v_order_total  DECIMAL(8,2);
+    DECLARE v_new_total    DECIMAL(8,2);
+    DECLARE v_msg          VARCHAR(255);
 
-    -- Step 1: Fetch coupon details
-    SELECT discount_percent, min_purchase, expiry_date, status
-    INTO v_discount, v_min_purchase, v_expiry, v_status
-    FROM coupon
-    WHERE coupon_code = p_coupon_code
-    Limit 1;
+    -- if SELECT finds no row → set v_coupon_id = NULL
+    DECLARE CONTINUE HANDLER FOR NOT FOUND SET v_coupon_id = NULL;
 
-    -- Step 2: Fetch order total
-    SELECT total_amount INTO v_order_total
-    FROM orders
-    WHERE order_id = p_order_id
-    Limit 1;
+    -- 1) Find coupon by code
+    SELECT coupon_id, discount_percent, min_purchase, expiry_date, status
+    INTO   v_coupon_id, v_discount, v_min_purchase, v_expiry, v_status
+    FROM   coupons
+    WHERE  coupon_code = p_coupon_code
+    LIMIT  1;
 
-    -- Step 3: Validate coupon
-    IF v_discount IS NULL THEN
+    -- 2) Get current order total (before discount)
+    SELECT total_amount
+    INTO   v_order_total
+    FROM   orders
+    WHERE  order_id = p_order_id
+    LIMIT  1;
+
+    -- 3) Validation
+    IF v_coupon_id IS NULL THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Invalid coupon code.';
+        SET MESSAGE_TEXT = 'Invalid coupon code';
+
     ELSEIF v_status <> 'Active' THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Coupon is not active or already used.';
-    ELSEIF v_expiry < CURDATE() THEN
+        SET MESSAGE_TEXT = 'Coupon is not active or already used';
+
+    ELSEIF v_expiry IS NOT NULL AND v_expiry < CURDATE() THEN
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = 'Coupon has expired.';
+        SET MESSAGE_TEXT = 'Coupon has expired';
+
     ELSEIF v_order_total < v_min_purchase THEN
-        SET v_msg = CONCAT('Minimum purchase of ', v_min_purchase, ' required.');
+        SET v_msg = CONCAT('Minimum purchase ', v_min_purchase, ' required');
         SIGNAL SQLSTATE '45000'
-        SET MESSAGE_TEXT = v_message;
+        SET MESSAGE_TEXT = v_msg;
+
     ELSE
-        -- Step 4: Apply discount
+        -- 4) Calculate new total
+        SET v_new_total = v_order_total - (v_order_total * v_discount / 100);
+
+        -- 5) Update order with discount + coupon_id
         UPDATE orders
-        SET total_amount = floor(total_amount - (v_order_total * v_discount / 100))
+        SET total_amount = v_new_total,
+            coupon_id    = v_coupon_id
         WHERE order_id = p_order_id;
 
-        -- Step 5: Mark coupon as used
-        UPDATE coupon
+        -- 6) Mark coupon as redeemed
+        UPDATE coupons
         SET status = 'Redeemed'
-        WHERE coupon_code = p_coupon_code;
+        WHERE coupon_id = v_coupon_id;
     END IF;
 END$$
 
@@ -98,6 +123,20 @@ CREATE TABLE `coupons` (
   `min_purchase` decimal(8,2) DEFAULT NULL,
   `status` enum('Active','Inactive','Expired','Redeemed') NOT NULL DEFAULT 'Active'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `coupons`
+--
+
+INSERT INTO `coupons` (`coupon_id`, `coupon_code`, `discount_percent`, `expiry_date`, `min_purchase`, `status`) VALUES
+(1, 'WELCOME10', '10.00', '2026-01-31', '0.00', 'Active'),
+(2, 'FREESHIP50', '5.00', '2025-12-31', '50.00', 'Active'),
+(3, 'TESTOFF15', '15.00', '2026-06-30', '0.00', 'Inactive'),
+(4, 'STAFFONLY20', '20.00', '2026-03-31', '100.00', 'Inactive'),
+(5, 'NEWYEAR25', '25.00', '2024-12-31', '200.00', 'Expired'),
+(6, 'OLD5', '5.00', '2023-08-15', '20.00', 'Expired'),
+(7, 'USED10', '10.00', '2025-01-15', '80.00', 'Redeemed'),
+(8, 'MEMBER8', '8.00', '2025-05-31', '40.00', 'Redeemed');
 
 -- --------------------------------------------------------
 
@@ -211,7 +250,7 @@ CREATE TABLE `products` (
 INSERT INTO `products` (`product_id`, `product_name`, `category`, `price`, `stock_qty`, `expiry_date`, `status`, `image_path`) VALUES
 (1, 'Cola Can 325ml', 'Beverage', '18.00', 120, '2025-12-10', 'Active', 'https://britishop.com/storage/imgcache/Coke-Can__960x960xsquare.jpeg'),
 (2, 'Orange Juice 250ml', 'Beverage', '25.00', 80, '2025-11-05', 'Active', 'https://rita.com.vn/ritaproducts/glass-bottle-250ml_fruit-juice_04.jpg'),
-(3, 'Mineral Water 500ml', 'Beverage', '12.00', 150, '2026-01-15', 'Active', 'https://st.bigc-cs.com/cdn-cgi/image/format=webp,quality=90/public/media/catalog/product/09/88/8851530111009/8851530111009-20230322160822-.jpg'),
+(3, 'Mineral Water 500ml', 'Beverage', '12.00', 150, '2026-01-15', 'Active', 'https://bangpleestationery.com/wp-content/uploads/2019/12/30880449.png'),
 (4, 'Iced Tea Lemon 300ml', 'Beverage', '22.00', 90, '2025-10-20', 'Active', 'https://media.takealot.com/covers_images/6c5467b07d6c490a9d7d4651528ff86a/s-zoom.file'),
 (5, 'Potato Chips Classic', 'Snack', '35.00', 60, '2025-09-01', 'Active', 'https://m.media-amazon.com/images/I/81A9IZqezwL.jpg_BO30,255,255,255_UF900,850_SR1910,1000,0,C_QL100_.jpg'),
 (6, 'Chocolate Wafer Bar', 'Snack', '20.00', 100, '2025-08-15', 'Active', 'https://www.ubuy.co.th/productimg/?image=aHR0cHM6Ly9tLm1lZGlhLWFtYXpvbi5jb20vaW1hZ2VzL0kvNjF5dEdOSzVLWEwuX1NMMTAwMF8uanBn.jpg'),
@@ -244,7 +283,7 @@ INSERT INTO `products` (`product_id`, `product_name`, `category`, `price`, `stoc
 (33, 'Dog Food 1kg', 'Pet Supply', '120.00', 20, '2026-08-01', 'Active', 'https://www.animalia.com.ar/wp-content/uploads/2018/12/WhatsApp-Image-2020-02-19-at-11.52.06.jpeg'),
 (34, 'Cat Food 500g', 'Pet Supply', '75.00', 25, '2026-05-10', 'Active', 'https://gourmetmarketthailand.com/_next/image?url=https%3A%2F%2Fmedia-stark.gourmetmarketthailand.com%2Fproducts%2Fcover%2F8853301550055-1.webp&w=1200&q=75'),
 (35, 'Pet Shampoo 250ml', 'Pet Supply', '60.00', 15, NULL, 'Active', 'https://petprotectthailand.com/sites/12063/files/s/products/o_1g5oidce839d174611gg1cj41770k.jpg'),
-(36, 'Cat Litter 5kg', 'Pet Supply', '90.00', 18, NULL, 'Active', 'https://images.onlinepets.com/product-images/catalog/afb2ec7eba460bd56a5c4dc72d2dd552c8a8ab224d258c6c86f5042118ce6c40_3.jpeg'),
+(36, 'Cat Litter 5kg', 'Pet Supply', '90.00', 20, NULL, 'Active', 'https://images.onlinepets.com/product-images/catalog/afb2ec7eba460bd56a5c4dc72d2dd552c8a8ab224d258c6c86f5042118ce6c40_3.jpeg'),
 (37, 'Umbrella Foldable', 'Other', '120.00', 12, NULL, 'Active', 'https://www.nitori.co.th/cdn/shop/products/869958912_570x570.jpg?v=1684985809'),
 (38, 'Face Mask Pack (10pcs)', 'Other', '25.00', 200, NULL, 'Active', 'https://th.yukazan.com/cdn/shop/products/Slide178.jpg?v=1671068483'),
 (39, 'Lighter Standard', 'Other', '10.00', 150, NULL, 'Active', 'https://hercules-group.com/wp-content/uploads/2020/12/11454.jpg'),
@@ -289,7 +328,7 @@ INSERT INTO `users` (`user_id`, `username`, `password`, `email`, `phone_number`,
 (2, 'Staff', 0xf3709a0d9f27e4ec36cb8b7d5557065a, '', '', 'Staff', 0),
 (3, 'Staff2', 0xf3709a0d9f27e4ec36cb8b7d5557065a, '', '', 'Staff', 0),
 (4, 'Alice', 0xcef9b1fcff8bdcee130714ebe591fdf6, '', '', 'Customer', 0),
-(5, 'test', 0xf220c96a890ebb043d3dc942e8fc73ef, '', '', 'Customer', 0),
+(5, 'test', 0xf220c96a890ebb043d3dc942e8fc73ef, '', '', 'Customer', 161),
 (6, 'Bob', 0x0490cc6f1323d377a508e93e2b810976, '', '', 'Customer', 0);
 
 --
@@ -355,25 +394,25 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `coupons`
 --
 ALTER TABLE `coupons`
-  MODIFY `coupon_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `coupon_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `orderdetails`
 --
 ALTER TABLE `orderdetails`
-  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
 
 --
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `products`
