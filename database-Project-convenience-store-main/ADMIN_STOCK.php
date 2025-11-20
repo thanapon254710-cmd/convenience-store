@@ -36,25 +36,30 @@ $sortMap = [
 $orderBy = $sortMap[$sortKey] ?? $sortMap['name'];
 
 /* -------------------------------------------------
-   HANDLE STOCK UPDATE (POST)
+   HANDLE POST ACTIONS (only update_stock)
 ------------------------------------------------- */
 $message = '';
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'update_stock') {
-    $id   = (int)($_POST['product_id'] ?? 0);
-    $qty  = (int)($_POST['stock_qty']  ?? 0);
-    $stat = $_POST['status'] ?? 'Active';
 
-    $stmt = $mysqli->prepare("UPDATE products SET stock_qty = ?, status = ? WHERE product_id = ?");
-    if ($stmt) {
-        $stmt->bind_param('isi', $qty, $stat, $id);
-        if ($stmt->execute()) {
-            $message = 'Stock updated successfully.';
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $action = $_POST['action'] ?? '';
+    $id     = (int)($_POST['product_id'] ?? 0);
+
+    if ($id > 0 && $action === 'update_stock') {
+        $qty  = (int)($_POST['stock_qty']  ?? 0);
+        $stat = $_POST['status'] ?? 'Active'; // must be 'Active', 'Inactive', 'Out of Stock'
+
+        $stmt = $mysqli->prepare("UPDATE products SET stock_qty = ?, status = ? WHERE product_id = ?");
+        if ($stmt) {
+            $stmt->bind_param('isi', $qty, $stat, $id);
+            if ($stmt->execute()) {
+                $message = "Stock updated for product #{$id}.";
+            } else {
+                $message = 'Update failed: ' . $stmt->error;
+            }
+            $stmt->close();
         } else {
-            $message = 'Update failed: ' . $stmt->error;
+            $message = 'DB error: ' . $mysqli->error;
         }
-        $stmt->close();
-    } else {
-        $message = 'DB error: ' . $mysqli->error;
     }
 }
 
@@ -75,7 +80,7 @@ if ($res) {
    BUILD WHERE CLAUSE + PARAMS FOR FILTERS
 ------------------------------------------------- */
 $whereParts = [];
-$types = '';
+$types  = '';
 $params = [];
 
 $whereParts[] = '1=1';
@@ -106,8 +111,8 @@ $whereSql = implode(' AND ', $whereParts);
    COUNT TOTAL ROWS (for pagination)
 ------------------------------------------------- */
 $totalRows = 0;
-$sqlCount = "SELECT COUNT(*) AS cnt FROM products WHERE $whereSql";
-$stmt = $mysqli->prepare($sqlCount);
+$sqlCount  = "SELECT COUNT(*) AS cnt FROM products WHERE $whereSql";
+$stmt      = $mysqli->prepare($sqlCount);
 if ($stmt) {
     if ($types !== '') {
         $stmt->bind_param($types, ...$params);
@@ -139,7 +144,7 @@ $sql = "
 ";
 $stmt = $mysqli->prepare($sql);
 if ($stmt) {
-    $typesPage = $types . 'ii';
+    $typesPage  = $types . 'ii';
     $paramsPage = $params;
     $paramsPage[] = $offset;
     $paramsPage[] = $perPage;
@@ -164,6 +169,8 @@ $baseParams = [
     'category' => $category,
     'status'   => $status
 ];
+
+// ENUM in DB: ('Active','Inactive','Out of Stock')
 $statusOptions = ['Active', 'Inactive', 'Out of Stock'];
 ?>
 <!DOCTYPE html>
@@ -196,6 +203,26 @@ $statusOptions = ['Active', 'Inactive', 'Out of Stock'];
             }
         }
     </script>
+
+    <!-- SweetAlert for Logout -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmLogout() {
+            Swal.fire({
+                title: "Confirm Logout",
+                text: "Are you sure?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#b94a4a",
+                cancelButtonColor: "#6b7280",
+                confirmButtonText: "Logout",
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    window.location = 'logout.php';
+                }
+            });
+        }
+    </script>
 </head>
 
 <body class="min-h-screen bg-soft text-gray-800">
@@ -209,7 +236,10 @@ $statusOptions = ['Active', 'Inactive', 'Out of Stock'];
                     <img src="asset/2960679-2182.png" class="w-full h-full object-cover rounded-lg" />
                 </div>
                 <div>
-                    <div class="text-lg font-semibold">Admin<br/><span class="text-sm text-gray-500">Dashboard</span></div>
+                    <div class="text-lg font-semibold">
+                        Admin<br/>
+                        <span class="text-sm text-gray-500">Dashboard</span>
+                    </div>
                 </div>
             </div>
 
@@ -240,7 +270,7 @@ $statusOptions = ['Active', 'Inactive', 'Out of Stock'];
                         </a>
                     </li>
                     <li>
-                        <a href="logout.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
+                        <a href="#" onclick="confirmLogout()" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
                             <span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border">🚪</span>
                             <span class="text-sm font-medium">Logout</span>
                         </a>
@@ -257,7 +287,12 @@ $statusOptions = ['Active', 'Inactive', 'Out of Stock'];
             <!-- HEADER -->
             <div class="mb-6">
                 <h1 class="text-3xl font-bold" style="font-family: 'PT Serif'">Stock Management</h1>
-                <p class="text-gray-500 mt-1 text-sm">Monitor product inventory and update stock levels.</p>
+                <p class="text-gray-500 mt-1 text-sm">
+                    Monitor product inventory and update stock levels.
+                    Active items show an <span class="font-semibold text-green-600">Enable</span> label next to Save,
+                    inactive or out-of-stock items show a
+                    <span class="font-semibold text-red-600">Disable</span> label.
+                </p>
                 <div class="h-[1px] bg-outline mt-4"></div>
             </div>
 
@@ -340,12 +375,12 @@ $statusOptions = ['Active', 'Inactive', 'Out of Stock'];
                         <?php
                         function sortLink($label, $key, $currentKey, $currentDir, $baseParams) {
                             $nextDir = ($currentKey === $key && $currentDir === 'asc') ? 'desc' : 'asc';
-                            $params = array_merge($baseParams, [
+                            $params  = array_merge($baseParams, [
                                 'sort' => $key,
                                 'dir'  => $nextDir,
                                 'page' => 1
                             ]);
-                            $qs = http_build_query($params);
+                            $qs    = http_build_query($params);
                             $arrow = '';
                             if ($currentKey === $key) {
                                 $arrow = $currentDir === 'asc' ? '▲' : '▼';
@@ -376,6 +411,8 @@ $statusOptions = ['Active', 'Inactive', 'Out of Stock'];
                         <?php foreach ($products as $p): ?>
                             <?php
                             $qty = (int)$p['stock_qty'];
+
+                            // stock color in Stock column
                             if ($qty <= 10) {
                                 $qtyClass = 'text-red-600 font-semibold';
                             } elseif ($qty <= 30) {
@@ -383,24 +420,58 @@ $statusOptions = ['Active', 'Inactive', 'Out of Stock'];
                             } else {
                                 $qtyClass = 'text-gray-800';
                             }
+
+                            // fade + line-through when Inactive or Out of Stock
+                            $isInactiveRow = (
+                                $p['status'] === 'Inactive' ||
+                                $p['status'] === 'Out of Stock'
+                            );
+                            $rowExtra  = $isInactiveRow ? 'opacity-70' : '';
+                            $nameClass = $isInactiveRow ? 'text-gray-400 line-through' : 'text-gray-900';
+
+                            // colored status text
+                            if ($p['status'] === 'Active') {
+                                $statusText  = 'Active';
+                                $statusClass = 'text-green-600 font-semibold text-xs';
+                            } elseif ($p['status'] === 'Out of Stock') {
+                                $statusText  = 'Out of Stock';
+                                $statusClass = 'text-red-600 font-semibold text-xs';
+                            } else { // Inactive
+                                $statusText  = 'Inactive';
+                                $statusClass = 'text-gray-500 font-semibold text-xs';
+                            }
+
+                            // Enable / Disable label
+                            if ($p['status'] === 'Active' && $qty > 0) {
+                                $actionLabel      = 'Enable';
+                                $actionLabelClass = 'text-green-600 font-semibold text-xs';
+                            } else {
+                                $actionLabel      = 'Disable';
+                                $actionLabelClass = 'text-red-600 font-semibold text-xs';
+                            }
                             ?>
-                            <tr class="border-b last:border-0 hover:bg-gray-50 transition">
+                            <tr class="border-b last:border-0 hover:bg-gray-50 transition <?= $rowExtra ?>">
                                 <td class="py-2"><?= $p['product_id'] ?></td>
-                                <td class="py-2 font-medium"><?= htmlspecialchars($p['product_name']) ?></td>
+                                <td class="py-2 font-medium <?= $nameClass ?>">
+                                    <?= htmlspecialchars($p['product_name']) ?>
+                                </td>
                                 <td class="py-2 text-gray-500"><?= htmlspecialchars($p['category']) ?></td>
                                 <td class="py-2 text-right">฿<?= number_format($p['price'], 2) ?></td>
-
-                                <td class="py-2 text-right <?= $qtyClass ?>">
-                                    <form method="post" class="inline-flex items-center gap-2">
-                                        <input type="hidden" name="action" value="update_stock">
-                                        <input type="hidden" name="product_id" value="<?= $p['product_id'] ?>">
-                                        <input type="number"
-                                               name="stock_qty"
-                                               class="w-20 border rounded px-1 py-0.5 text-right text-xs"
-                                               value="<?= $qty ?>">
+                                <td class="py-2 text-right <?= $qtyClass ?>"><?= $qty ?></td>
+                                <td class="py-2 text-right">
+                                    <span class="<?= $statusClass ?>"><?= $statusText ?></span>
                                 </td>
 
                                 <td class="py-2 text-right">
+                                    <form method="post" class="flex items-center justify-end gap-2">
+                                        <input type="hidden" name="product_id" value="<?= $p['product_id'] ?>">
+
+                                        <input type="number"
+                                               name="stock_qty"
+                                               class="w-20 border rounded px-1 py-0.5 text-right text-xs"
+                                               min="0"
+                                               value="<?= $qty ?>">
+
                                         <select name="status" class="border rounded px-1 py-0.5 text-xs">
                                             <?php foreach ($statusOptions as $opt): ?>
                                                 <option value="<?= $opt ?>" <?= $opt === $p['status'] ? 'selected' : '' ?>>
@@ -408,13 +479,17 @@ $statusOptions = ['Active', 'Inactive', 'Out of Stock'];
                                                 </option>
                                             <?php endforeach; ?>
                                         </select>
-                                </td>
 
-                                <td class="py-2 text-right">
                                         <button type="submit"
+                                                name="action"
+                                                value="update_stock"
                                                 class="px-3 py-1 text-xs rounded-md bg-primary text-white hover:bg-accent transition">
                                             Save
                                         </button>
+
+                                        <span class="<?= $actionLabelClass ?>">
+                                            <?= $actionLabel ?>
+                                        </span>
                                     </form>
                                 </td>
                             </tr>
@@ -433,7 +508,6 @@ $statusOptions = ['Active', 'Inactive', 'Out of Stock'];
 
                         <div class="flex gap-1">
                             <?php
-                            // Previous
                             if ($page > 1) {
                                 $paramsPrev = array_merge($baseParams, [
                                     'sort' => $sortKey,
@@ -444,7 +518,6 @@ $statusOptions = ['Active', 'Inactive', 'Out of Stock'];
                                           class="px-3 py-1 border rounded-lg hover:bg-gray-50">Previous</a>';
                             }
 
-                            // Page numbers (simple window)
                             $startPage = max(1, $page - 2);
                             $endPage   = min($totalPages, $page + 2);
                             for ($i = $startPage; $i <= $endPage; $i++) {
@@ -459,7 +532,6 @@ $statusOptions = ['Active', 'Inactive', 'Out of Stock'];
                                 echo '<a href="ADMIN_STOCK.php?' . http_build_query($paramsPageLink) . '" class="' . $class . '">' . $i . '</a>';
                             }
 
-                            // Next
                             if ($page < $totalPages) {
                                 $paramsNext = array_merge($baseParams, [
                                     'sort' => $sortKey,

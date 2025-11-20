@@ -215,7 +215,7 @@ if ($res = $mysqli->query($sql)) {
                     </li>
 
                     <li>
-                        <a href="#" onclick="confirmLogout()" class="flex items-center gap-3 px-2 py-2 hover:bg-gray-50">
+                        <a href="logout.php" onclick="confirmLogout()" class="flex items-center gap-3 px-2 py-2 hover:bg-gray-50">
                             <span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border">🚪</span>
                             <span class="text-sm font-medium">Logout</span>
                         </a>
