@@ -1,11 +1,12 @@
 <?php
 session_start();
-require_once 'connect.php';
+
 
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'Admin') {
-    header('Location: index.php');
+    header("Location: index.php");
     exit;
 }
+require_once 'connect.php';
 
 // Load customers + stats
 $customers = [];

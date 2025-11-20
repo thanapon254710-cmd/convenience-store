@@ -1,16 +1,9 @@
 <?php
-/*
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
-*/
-
 session_start();
 require_once 'connect.php';
 
 $error = '';
 
-// Handle login BEFORE any HTML output
 if (isset($_POST['submit'])) {
     $u = $_POST['username'] ?? '';
     $p = $_POST['passwd'] ?? '';
@@ -18,11 +11,13 @@ if (isset($_POST['submit'])) {
     if ($u === '' || $p === '') {
         $error = "Please enter both username and password.";
     } else {
-        // Prepared statement to avoid SQL injection
+
         $q = $mysqli->prepare("
             SELECT user_id, username, role, points 
-            FROM users 
-            WHERE username = ? AND password = AES_ENCRYPT(?, SHA1('password'))
+            FROM users
+            WHERE username = ?
+              AND password = AES_ENCRYPT(?, SHA1('password'))
+            LIMIT 1
         ");
 
         if (!$q) {
@@ -30,37 +25,30 @@ if (isset($_POST['submit'])) {
         } else {
             $q->bind_param("ss", $u, $p);
             $q->execute();
-
-            // Get result set from prepared statement
             $result = $q->get_result();
 
             if ($row = $result->fetch_assoc()) {
-                // Login success
+
                 $_SESSION['user_id']  = $row['user_id'];
                 $_SESSION['username'] = $row['username'];
                 $_SESSION['role']     = $row['role'];
                 $_SESSION['points']   = $row['points'];
 
-                $roleDbAccounts = [
-                    'Admin'    => ['user' => 'admin', 'pass' => 'admin'],
-                    'Staff'    => ['user' => 'staff', 'pass' => 'staff'],
-                    'Customer' => ['user' => 'customer', 'pass' => 'customer'],
-                ];
+                // IMPORTANT: Your MySQL accounts have NO PASSWORD
+                // always use ONE database account
+$mysqli = new mysqli('localhost', 'root', 'root', 'convenience_store');
+if ($mysqli->connect_errno) {
+    die("Database connection failed: " . $mysqli->connect_error);
+}
 
-                $role = $row['role']; 
-                $dbUser = $roleDbAccounts[$role]['user'];
-                $dbPass = $roleDbAccounts[$role]['pass'];
 
-                $mysqli = new mysqli('localhost', $dbUser, $dbPass, 'convenience_store');
-
-                if($mysqli->connect_errno){
+                if ($mysqli->connect_errno) {
                     die("Database connection failed: " . $mysqli->connect_error);
                 }
-                $_SESSION["db_username"] = $dbUser;
-                $_SESSION["db_password"] = $dbPass;
 
-                // Redirect depending on role
-                // $_SESSION['db_message'] = "Connected to MySQL as $dbUser"; //check if connect successful or not
+                $_SESSION['db_username'] = $dbUser;
+                $_SESSION['db_password'] = $dbPass;
+
                 if ($row['role'] === 'Admin') {
                     header("Location: ADMIN_HOME.php");
                 } elseif ($row['role'] === 'Staff') {
@@ -69,8 +57,8 @@ if (isset($_POST['submit'])) {
                     header("Location: HOME.php");
                 }
                 exit;
+
             } else {
-                // No matching user
                 $error = "Invalid username or password.";
             }
 
@@ -79,43 +67,41 @@ if (isset($_POST['submit'])) {
     }
 }
 ?>
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Login — Number 1 Shop</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <header class="site-header">
-    <img class="logo logo--bgless" src="asset/2960679-2182.png" alt="The convenience store">
+        <img class="logo logo--bgless" src="asset/2960679-2182.png" alt="The convenience store">
     </header>
+
     <main class="page">
-    <form action="<?= $_SERVER['PHP_SELF'] ?>" method="POST">
-        <div class="card">
-            <h2>Login</h2>
+        <form action="<?= $_SERVER['PHP_SELF'] ?>" method="POST">
+            <div class="card">
+                <h2>Login</h2>
 
-            <!-- SHOW ERROR HERE -->
-            <?php if ($error): ?>
-                <p class="error"><?= htmlspecialchars($error) ?></p>
-            <?php endif; ?>
+                <?php if ($error): ?>
+                    <p class="error"><?= htmlspecialchars($error) ?></p>
+                <?php endif; ?>
 
-            <label>Username</label>
-            <input type="text" name="username" placeholder="Enter your username" required>
+                <label>Username</label>
+                <input type="text" name="username" placeholder="Enter your username" required>
 
-            <label>Password</label>
-            <input type="password" name="passwd" placeholder="Enter your password" required>
+                <label>Password</label>
+                <input type="password" name="passwd" placeholder="Enter your password" required>
 
-            <button type="submit" name="submit" class="primary">Login</button>
+                <button type="submit" name="submit" class="primary">Login</button>
 
-            <p class="small">
-                <a href="signup.php">Don't have an account?</a>
-            </p>
-        </div>
-    </form>
-</main>
-    
+                <p class="small">
+                    <a href="signup.php">Don't have an account?</a>
+                </p>
+            </div>
+        </form>
+    </main>
 </body>
 </html>

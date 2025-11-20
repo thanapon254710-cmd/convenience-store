@@ -1,7 +1,7 @@
-<?php //use only login and signup
-$mysqli = new mysqli('localhost','root','root','convenience_store');
+<?php
+$mysqli = new mysqli('localhost', 'root', 'root', 'convenience_store');
 
-   if($mysqli->connect_errno){
-      die("Database connection failed: " . $mysqli->connect_error);
-   }
+if ($mysqli->connect_errno) {
+    die("Database connection failed: " . $mysqli->connect_error);
+}
 ?>
