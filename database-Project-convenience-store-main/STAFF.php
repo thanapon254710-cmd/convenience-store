@@ -57,7 +57,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($pid > 0 && $action === 'update_stock') {
         $qty  = (int)($_POST['stock_qty'] ?? 0);
-        $stat = $_POST['status'] ?? 'Active'; // staff allowed: 'Active', 'Out of Stock'
+        // staff can set only Active / Out of Stock
+        $stat = $_POST['status'] ?? 'Active';
 
         $stmt = $mysqli->prepare("
             UPDATE products
@@ -115,7 +116,6 @@ if ($category !== '') {
 }
 
 if ($status !== '') {
-    // staff filter only by Active / Out of Stock
     $whereParts[] = 'status = ?';
     $types .= 's';
     $params[] = $status;
@@ -186,10 +186,9 @@ $baseParams = [
     'status'   => $status
 ];
 
-// Staff can only SET: Active / Out of Stock
-$statusOptionsDropdown = ['Active', 'Out of Stock'];
-// For filter dropdown, show same two
-$statusFilterOptions   = ['Active', 'Out of Stock'];
+// staff can SET only these
+$statusOptions = ['Active', 'Out of Stock'];
+$statusFilterOptions = ['Active', 'Out of Stock'];
 ?>
 <!Doctype html>
 <html lang="en">
@@ -268,23 +267,18 @@ $statusFilterOptions   = ['Active', 'Out of Stock'];
 
             <nav class="flex-1">
                 <ul class="space-y-3">
-                    <!-- Current page: Stock -->
                     <li class="bg-red-50 rounded-lg">
                         <a href="STAFF.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
                             <span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-primary">📦</span>
                             <span class="text-sm font-medium">Stock</span>
                         </a>
                     </li>
-
-                    <!-- Customer View -->
                     <li>
                         <a href="STAFF_CUSTOMERS.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
                             <span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">👥</span>
                             <span class="text-sm font-medium">Customer View</span>
                         </a>
                     </li>
-
-                    <!-- Logout -->
                     <li>
                         <a href="#" onclick="confirmLogout()" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
                             <span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">🚪</span>
@@ -460,7 +454,7 @@ $statusFilterOptions   = ['Active', 'Out of Stock'];
                             } elseif ($p['status'] === 'Out of Stock') {
                                 $statusText  = 'Out of Stock';
                                 $statusClass = 'text-red-600 font-semibold text-xs';
-                            } else { // Inactive or other
+                            } else { // Inactive or other (from Admin)
                                 $statusText  = htmlspecialchars($p['status']);
                                 $statusClass = 'text-gray-500 font-semibold text-xs';
                             }
@@ -497,7 +491,7 @@ $statusFilterOptions   = ['Active', 'Out of Stock'];
                                                value="<?= $qty ?>">
 
                                         <select name="status" class="border rounded px-1 py-0.5 text-xs">
-                                            <?php foreach ($statusOptionsDropdown as $opt): ?>
+                                            <?php foreach ($statusOptions as $opt): ?>
                                                 <option value="<?= $opt ?>" <?= $opt === $p['status'] ? 'selected' : '' ?>>
                                                     <?= $opt ?>
                                                 </option>
