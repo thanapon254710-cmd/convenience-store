@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost:3306
--- Generation Time: Nov 20, 2025 at 01:43 PM
+-- Generation Time: Nov 21, 2025 at 05:12 AM
 -- Server version: 5.7.24
 -- PHP Version: 8.2.14
 
@@ -20,26 +20,6 @@ SET time_zone = "+00:00";
 --
 -- Database: `convenience_store`
 --
-
--- Privileges for `admin`@`localhost`
-
-GRANT USAGE ON *.* TO 'admin'@'localhost';
-
-GRANT ALL PRIVILEGES ON `convenience\_store`.* TO 'admin'@'localhost';
-
-
--- Privileges for `customer`@`localhost`
-
-GRANT USAGE ON *.* TO 'customer'@'localhost';
-
-GRANT SELECT, INSERT, UPDATE, EXECUTE, TRIGGER ON `convenience\_store`.* TO 'customer'@'localhost';
-
-
--- Privileges for `staff`@`localhost`
-
-GRANT USAGE ON *.* TO 'staff'@'localhost';
-
-GRANT SELECT, INSERT, UPDATE, CREATE, REFERENCES, INDEX, ALTER, CREATE TEMPORARY TABLES, EXECUTE, CREATE VIEW, SHOW VIEW, CREATE ROUTINE, ALTER ROUTINE, EVENT, TRIGGER ON `convenience\_store`.* TO 'staff'@'localhost';
 
 DELIMITER $$
 --
@@ -129,14 +109,14 @@ CREATE TABLE `coupons` (
 --
 
 INSERT INTO `coupons` (`coupon_id`, `coupon_code`, `discount_percent`, `expiry_date`, `min_purchase`, `status`) VALUES
-(1, 'WELCOME10', '10.00', '2026-01-31', '0.00', 'Active'),
-(2, 'FREESHIP50', '5.00', '2025-12-31', '50.00', 'Active'),
+(1, 'WELCOME10', '10.00', '2026-01-31', '0.00', 'Redeemed'),
+(2, 'FREESHIP50', '5.00', '2025-12-31', '50.00', 'Redeemed'),
 (3, 'TESTOFF15', '15.00', '2026-06-30', '0.00', 'Inactive'),
 (4, 'STAFFONLY20', '20.00', '2026-03-31', '100.00', 'Inactive'),
 (5, 'NEWYEAR25', '25.00', '2024-12-31', '200.00', 'Expired'),
 (6, 'OLD5', '5.00', '2023-08-15', '20.00', 'Expired'),
-(7, 'USED10', '10.00', '2025-01-15', '80.00', 'Redeemed'),
-(8, 'MEMBER8', '8.00', '2025-05-31', '40.00', 'Redeemed');
+(7, 'USED10', '10.00', '2025-01-15', '80.00', 'Active'),
+(8, 'MEMBER8', '8.00', '2025-05-31', '40.00', 'Active');
 
 -- --------------------------------------------------------
 
@@ -152,6 +132,18 @@ CREATE TABLE `orderdetails` (
   `subtotal` decimal(8,2) DEFAULT NULL,
   `discount_applied` decimal(6,2) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `orderdetails`
+--
+
+INSERT INTO `orderdetails` (`detail_id`, `order_id`, `product_id`, `quantity`, `subtotal`, `discount_applied`) VALUES
+(1, 1, 41, 1, '321.00', '0.00'),
+(2, 2, 9, 1, '57.25', '2.86'),
+(3, 2, 29, 1, '57.25', '2.86'),
+(4, 3, 41, 2, '654.84', '65.48'),
+(5, 3, 3, 1, '654.84', '65.48'),
+(8, 2, 38, 1, '57.25', '2.86');
 
 --
 -- Triggers `orderdetails`
@@ -193,6 +185,15 @@ CREATE TABLE `orders` (
   `coupon_id` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
+--
+-- Dumping data for table `orders`
+--
+
+INSERT INTO `orders` (`order_id`, `user_id`, `order_date`, `total_amount`, `payment_type`, `status`, `coupon_id`) VALUES
+(1, 8, '2025-11-21', '321.00', 'QR Payment', 'Pending', NULL),
+(2, 8, '2025-11-21', '54.39', 'QR Payment', 'Processing', 2),
+(3, 7, '2025-11-21', '589.36', 'QR Payment', 'Pending', 1);
+
 -- --------------------------------------------------------
 
 --
@@ -207,6 +208,15 @@ CREATE TABLE `payments` (
   `method` enum('Cash','Credit Card','QR Payment') NOT NULL DEFAULT 'Cash',
   `transaction_code` varchar(50) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Dumping data for table `payments`
+--
+
+INSERT INTO `payments` (`payment_id`, `order_id`, `payment_date`, `amount_paid`, `method`, `transaction_code`) VALUES
+(1, 1, '2025-11-21', '321.00', 'QR Payment', 'TXN-691ff2ba97de5'),
+(2, 2, '2025-11-21', '54.39', 'QR Payment', 'TXN-691ff2d22f7d2'),
+(3, 3, '2025-11-21', '589.36', 'QR Payment', 'TXN-691ff2f924028');
 
 --
 -- Triggers `payments`
@@ -250,13 +260,13 @@ CREATE TABLE `products` (
 INSERT INTO `products` (`product_id`, `product_name`, `category`, `price`, `stock_qty`, `expiry_date`, `status`, `image_path`) VALUES
 (1, 'Cola Can 325ml', 'Beverage', '18.00', 120, '2025-12-10', 'Active', 'https://britishop.com/storage/imgcache/Coke-Can__960x960xsquare.jpeg'),
 (2, 'Orange Juice 250ml', 'Beverage', '25.00', 80, '2025-11-05', 'Active', 'https://rita.com.vn/ritaproducts/glass-bottle-250ml_fruit-juice_04.jpg'),
-(3, 'Mineral Water 500ml', 'Beverage', '12.00', 150, '2026-01-15', 'Active', 'https://bangpleestationery.com/wp-content/uploads/2019/12/30880449.png'),
+(3, 'Mineral Water 500ml', 'Beverage', '12.00', 149, '2026-01-15', 'Active', 'https://bangpleestationery.com/wp-content/uploads/2019/12/30880449.png'),
 (4, 'Iced Tea Lemon 300ml', 'Beverage', '22.00', 90, '2025-10-20', 'Active', 'https://media.takealot.com/covers_images/6c5467b07d6c490a9d7d4651528ff86a/s-zoom.file'),
 (5, 'Potato Chips Classic', 'Snack', '35.00', 60, '2025-09-01', 'Active', 'https://m.media-amazon.com/images/I/81A9IZqezwL.jpg_BO30,255,255,255_UF900,850_SR1910,1000,0,C_QL100_.jpg'),
 (6, 'Chocolate Wafer Bar', 'Snack', '20.00', 100, '2025-08-15', 'Active', 'https://www.ubuy.co.th/productimg/?image=aHR0cHM6Ly9tLm1lZGlhLWFtYXpvbi5jb20vaW1hZ2VzL0kvNjF5dEdOSzVLWEwuX1NMMTAwMF8uanBn.jpg'),
 (7, 'Seaweed Snack Original', 'Snack', '15.00', 70, '2025-07-30', 'Active', 'https://cloudinary.images-iherb.com/image/upload/f_auto,q_auto:eco/images/tki/tki23177/y/2.jpg'),
 (8, 'Mixed Nuts 50g', 'Snack', '30.00', 50, '2025-10-05', 'Active', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcS7xBY_h3tpdZ-t515d7Q4zefr6lkTtd969Fg&s'),
-(9, 'Instant Noodles', 'Instant Food', '15.00', 200, '2026-03-10', 'Active', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_3TEWVLFIii13ANy-2TpIidAC3aNJhoBQOA&s'),
+(9, 'Instant Noodles', 'Instant Food', '15.00', 199, '2026-03-10', 'Active', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR_3TEWVLFIii13ANy-2TpIidAC3aNJhoBQOA&s'),
 (10, 'Porridge Cup', 'Instant Food', '55.00', 50, '2025-12-20', 'Active', 'https://jgut.jayagrocer.com/cdn/shop/files/053724-1-1_4a15e254-40ac-4476-9985-388ab0a1156f.jpg?v=1756109505'),
 (11, 'Canned Sardines 155g', 'Instant Food', '45.00', 40, '2027-04-01', 'Active', 'https://asianpantry.com.au/cdn/shop/products/1GjnyoeOwiLD7CkhId4Vu4s1bNw-X8M8f_grande.jpg?v=1603364147'),
 (12, 'Canned Soup Creamy Corn', 'Instant Food', '38.00', 30, '2026-02-14', 'Active', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRITXFu9gXk_58dCLJDhl9-uW1lwqKE3ry_9A&s'),
@@ -276,7 +286,7 @@ INSERT INTO `products` (`product_id`, `product_name`, `category`, `price`, `stoc
 (26, 'Laundry Detergent 1kg', 'Household Item', '98.00', 30, NULL, 'Active', 'https://ghanaprovisions.com/cdn/shop/products/omo1.jpg?v=1410486258'),
 (27, 'Trash Bags Medium (20pcs)', 'Household Item', '45.00', 55, NULL, 'Active', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQO2O17gDENBC9BZyOGM9z02b81DP7ggAgOnA&s'),
 (28, 'Paper Towels 2 Rolls', 'Household Item', '55.00', 45, NULL, 'Active', 'https://gourmetmarketthailand.com/_next/image?url=https%3A%2F%2Fmedia-stark.gourmetmarketthailand.com%2Fproducts%2Fcover%2F8888336006093-1.webp&w=1200&q=75'),
-(29, 'Blue Ballpoint Pen', 'Stationery', '10.00', 200, NULL, 'Active', 'https://media.rs-online.com/R6961793-01.jpg'),
+(29, 'Blue Ballpoint Pen', 'Stationery', '10.00', 199, NULL, 'Active', 'https://media.rs-online.com/R6961793-01.jpg'),
 (30, 'A4 Paper 40 pages', 'Stationery', '25.00', 100, NULL, 'Active', 'https://www.siriwongpanid.com/wp-content/uploads/2021/06/5072012.jpg'),
 (31, 'Highlighter Set (3pcs)', 'Stationery', '40.00', 50, NULL, 'Active', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRcgzG_YtuKvdyiNeIBZ1qH8teUkohRK28tvWnHfXKh9JqLLNiLNlN5eQU5Cl_eQLVsJ-g&usqp=CAU'),
 (32, 'Glue Stick 15g', 'Stationery', '15.00', 80, NULL, 'Active', 'https://www.schooldepot.co.nz/cdn/shop/products/Amos-Glue-Stick-15g.png?v=1604262727'),
@@ -285,10 +295,10 @@ INSERT INTO `products` (`product_id`, `product_name`, `category`, `price`, `stoc
 (35, 'Pet Shampoo 250ml', 'Pet Supply', '60.00', 15, NULL, 'Active', 'https://petprotectthailand.com/sites/12063/files/s/products/o_1g5oidce839d174611gg1cj41770k.jpg'),
 (36, 'Cat Litter 5kg', 'Pet Supply', '90.00', 20, NULL, 'Active', 'https://images.onlinepets.com/product-images/catalog/afb2ec7eba460bd56a5c4dc72d2dd552c8a8ab224d258c6c86f5042118ce6c40_3.jpeg'),
 (37, 'Umbrella Foldable', 'Other', '120.00', 12, NULL, 'Active', 'https://www.nitori.co.th/cdn/shop/products/869958912_570x570.jpg?v=1684985809'),
-(38, 'Face Mask Pack (10pcs)', 'Other', '25.00', 200, NULL, 'Active', 'https://th.yukazan.com/cdn/shop/products/Slide178.jpg?v=1671068483'),
+(38, 'Face Mask Pack (10pcs)', 'Other', '25.00', 199, NULL, 'Active', 'https://th.yukazan.com/cdn/shop/products/Slide178.jpg?v=1671068483'),
 (39, 'Lighter Standard', 'Other', '10.00', 150, NULL, 'Active', 'https://hercules-group.com/wp-content/uploads/2020/12/11454.jpg'),
 (40, 'Reusable Tote Bag', 'Other', '30.00', 60, NULL, 'Active', 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcR3YRm3HC6HzEzWjtzWyrh28W9AnvOx53Z4eC4WXJTXcQpI3BxPUjKXslI_RK4iqGOovcU&usqp=CAU'),
-(41, 'Premium Chocolate Bar', 'Snack', '300.00', 10, '2026-12-20', 'Active', 'https://i.postimg.cc/k4YZv6RP/chocolate-bar-removebg-preview.png');
+(41, 'Premium Chocolate Bar', 'Snack', '300.00', 3, '2026-12-20', 'Active', 'https://i.postimg.cc/k4YZv6RP/chocolate-bar-removebg-preview.png');
 
 --
 -- Triggers `products`
@@ -328,8 +338,9 @@ INSERT INTO `users` (`user_id`, `username`, `password`, `email`, `phone_number`,
 (2, 'Staff', 0xf3709a0d9f27e4ec36cb8b7d5557065a, '', '', 'Staff', 0),
 (3, 'Staff2', 0xf3709a0d9f27e4ec36cb8b7d5557065a, '', '', 'Staff', 0),
 (4, 'Alice', 0xcef9b1fcff8bdcee130714ebe591fdf6, '', '', 'Customer', 0),
-(5, 'test', 0xf220c96a890ebb043d3dc942e8fc73ef, '', '', 'Customer', 161),
-(6, 'Bob', 0x0490cc6f1323d377a508e93e2b810976, '', '', 'Customer', 0);
+(6, 'Bob', 0x0490cc6f1323d377a508e93e2b810976, '', '', 'Customer', 0),
+(7, 'new', 0xd0481204df15b74a344f094a22c303a0, '', '', 'Customer', 65),
+(8, 'test', 0xf220c96a890ebb043d3dc942e8fc73ef, '', '', 'Customer', 37);
 
 --
 -- Triggers `users`
@@ -400,19 +411,19 @@ ALTER TABLE `coupons`
 -- AUTO_INCREMENT for table `orderdetails`
 --
 ALTER TABLE `orderdetails`
-  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
+  MODIFY `detail_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `orders`
 --
 ALTER TABLE `orders`
-  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=22;
+  MODIFY `order_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `payments`
 --
 ALTER TABLE `payments`
-  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `payment_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `products`
@@ -424,7 +435,7 @@ ALTER TABLE `products`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `user_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `user_id` bigint(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- Constraints for dumped tables
