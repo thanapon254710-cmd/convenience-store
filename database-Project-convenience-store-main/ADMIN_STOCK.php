@@ -19,7 +19,7 @@ $perPage = 15;
 $search   = trim($_GET['search']   ?? '');
 $category = trim($_GET['category'] ?? '');
 $status   = trim($_GET['status']   ?? '');
-$sortKey  = $_GET['sort'] ?? 'name';
+$sortKey  = $_GET['sort'] ?? 'id';
 $dir      = strtolower($_GET['dir'] ?? 'asc');
 $page     = max(1, (int)($_GET['page'] ?? 1));
 
@@ -33,7 +33,7 @@ $sortMap = [
     'stock'    => 'stock_qty',
     'status'   => 'status'
 ];
-$orderBy = $sortMap[$sortKey] ?? $sortMap['name'];
+$orderBy = $sortMap[$sortKey] ?? $sortMap['id'];
 
 /* -------------------------------------------------
    HANDLE POST ACTIONS (only update_stock)
@@ -228,53 +228,27 @@ $statusOptions = ['Active', 'Inactive', 'Out of Stock'];
 <body class="min-h-screen bg-soft text-gray-800">
 <div class="flex min-h-screen">
 
-    <!-- SIDEBAR -->
     <aside class="w-64 bg-sidebar p-4 sticky top-0 h-screen overflow-y-auto">
         <div class="bg-white border border-blue-300 rounded-xl p-4 shadow-sm flex flex-col h-full">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-400 flex items-center justify-center">
-                    <img src="asset/2960679-2182.png" class="w-full h-full object-cover rounded-lg" />
-                </div>
-                <div>
-                    <div class="text-lg font-semibold">
-                        Admin<br/>
-                        <span class="text-sm text-gray-500">Dashboard</span>
+                <a href="ADMIN_HOME.php" class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-400 text-white flex items-center justify-center">
+                        <img src="asset/2960679-2182.png" class="w-full h-full rounded-lg" />
                     </div>
-                </div>
+                    <div>
+                        <div class="text-m font-semibold">Admin<span class="text-m text-gray-500"> Dashboard</span></div>
+                    </div>
+                </a>
             </div>
 
             <nav class="flex-1">
                 <ul class="space-y-3">
-                    <li>
-                        <a href="ADMIN_HOME.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
-                            <span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border">📊</span>
-                            <span class="text-sm font-medium">Overview</span>
-                        </a>
-                    </li>
-                    <li class="bg-red-50 rounded-lg">
-                        <a href="ADMIN_STOCK.php" class="flex items-center gap-3 px-2 py-2 rounded-lg">
-                            <span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-primary">📦</span>
-                            <span class="text-sm font-medium">Stock</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="ADMIN_ORDERS.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
-                            <span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border">🧾</span>
-                            <span class="text-sm font-medium">Orders</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="ADMIN_CUSTOMERS.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
-                            <span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border">👥</span>
-                            <span class="text-sm font-medium">Customer View</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" onclick="confirmLogout()" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
-                            <span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border">🚪</span>
-                            <span class="text-sm font-medium">Logout</span>
-                        </a>
-                    </li>
+                    <!--Tab Bar-->
+                    <li><a href="ADMIN_HOME.php" class="flex items-center gap-3 px-2 py-2 hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border">📊</span><span class="text-sm font-medium">Overview</span></a></li>
+                    <li class="bg-red-50 rounded-lg"><a href="ADMIN_STOCK.php" class="flex items-center gap-3 px-2 py-2 hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border">📦</span><span class="text-sm font-medium">Stock</span></a></li>
+                    <li><a href="ADMIN_ORDERS.php" class="flex items-center gap-3 px-2 py-2 hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border">🧾</span><span class="text-sm font-medium">Orders</span></a></li>
+                    <li><a href="ADMIN_CUSTOMERS.php" class="flex items-center gap-3 px-2 py-2 hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border">👥</span><span class="text-sm font-medium">Customer View</span></a></li>
+                    <li><a href="#" onclick="confirmLogout()" class="flex items-center gap-3 px-2 py-2 hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border">🚪</span><span class="text-sm font-medium">Logout</span></a></li>
                 </ul>
             </nav>
         </div>

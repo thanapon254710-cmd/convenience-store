@@ -7,6 +7,11 @@ $buyNow = $_SESSION['buy_now_item'] ?? null;
 $couponCheck = $_GET['coupon'] ?? null;
 $couponId     = null;
 $discountRaw  = 0;   
+$min_coupon   = 0;
+
+$couponMessage      = "";
+$couponMessageClass = ""; 
+$couponFound        = false;
 
 // default mode if not set yet
 if (!isset($_SESSION['checkout_mode'])) {
@@ -17,15 +22,23 @@ if (!isset($_SESSION['checkout_mode'])) {
 $mode = $_SESSION['checkout_mode'];  // 'buy_now' or 'cart'
 
 if (!empty($couponCheck)) {
-    $couponSafe = $mysqli->real_escape_string($couponCheck);
-    $q = $mysqli->prepare("SELECT coupon_id, discount_percent, min_purchase FROM coupons WHERE coupon_code = ? AND status = 'Active' LIMIT 1");
+    $couponSafe = trim($couponCheck);
+    $q = $mysqli->prepare("
+            SELECT coupon_id, discount_percent, min_purchase 
+            FROM coupons 
+            WHERE coupon_code = ? AND status = 'Active' 
+            LIMIT 1");     
     $q->bind_param('s', $couponSafe);
     $q->execute();
     $result = $q->get_result();
     if ($row = $result->fetch_assoc()) {
+        $couponFound  = true;
         $couponId    = (int)$row['coupon_id'];
         $discountRaw = (float)$row['discount_percent'];
         $min_coupon = (float)$row['min_purchase'];
+    } else {
+        $couponMessage      = "Coupon code is invalid or inactive.";
+        $couponMessageClass = "text-red-500";
     }
     $q->close();
 }
@@ -60,6 +73,26 @@ if (!empty($couponCheck)) {
                     }
                 }
             }
+        }
+    </script>
+    
+    <!-- SweetAlert for logout -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmLogout() {
+            Swal.fire({
+                title: "Confirm Logout",
+                text: "Are you sure?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#b94a4a",
+                cancelButtonColor: "#6b7280",
+                confirmButtonText: "Logout",
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    window.location = 'logout.php';
+                }
+            });
         }
     </script>
     <link rel="stylesheet"
@@ -238,6 +271,30 @@ if (!empty($couponCheck)) {
 
                                 $total = $subtotal - $discountAmount;
 
+                                if (!empty($couponCheck) && $couponFound) {
+                                    if ($subprice == 0) {
+                                        // ADDED: can't use coupon with empty cart
+                                        $couponMessage      = "Add items to your cart before applying a coupon.";
+                                        $couponMessageClass = "text-red-500";
+                                        $discountAmount     = 0;
+                                        $total              = $subtotal;
+                                    } elseif ($subtotal <= $min_coupon) {
+                                        // ADDED: subtotal too low for min_purchase rule
+                                        $couponMessage      = "Minimum order amount to use this coupon is $" . number_format($min_coupon, 2) . ".";
+                                        $couponMessageClass = "text-red-500";
+                                        $discountAmount     = 0;
+                                        $total              = $subtotal;
+                                    } elseif ($discountAmount > 0) {
+                                        // ADDED: successful coupon
+                                        $couponMessage      = "Coupon is successfully applied! You saved $" . number_format($discountAmount, 2) . ".";
+                                        $couponMessageClass = "text-green-600";
+                                    } else {
+                                        // ADDED: generic fail-safe message
+                                        $couponMessage      = "Coupon could not be applied. Please check your cart total.";
+                                        $couponMessageClass = "text-red-500";
+                                    }
+                                }
+
                                 ?>
                                 <?php if ($subprice > $minimum): ?>
                                     <p class="font-medium">Free</p>
@@ -260,6 +317,7 @@ if (!empty($couponCheck)) {
                                     type="text" 
                                     name="coupon"
                                     placeholder="Enter code"
+                                    value="<?= htmlspecialchars($couponCheck ?? '') ?>"
                                     class="py-1 px-2 w-32 text-center rounded-md border border-gray-300 text-sm focus:outline-none focus:ring-1 focus:ring-primary"
                                 >
                                 <button type="submit"
@@ -267,6 +325,13 @@ if (!empty($couponCheck)) {
                                     Apply
                                 </button>
                             </form>
+                            
+                            <!-- show coupon success / error message under the input -->
+                            <?php if (!empty($couponCheck) && !empty($couponMessage)): ?>
+                                <p class="mt-2 text-xs <?= $couponMessageClass ?>">
+                                    <?= htmlspecialchars($couponMessage) ?>
+                                </p>
+                            <?php endif; ?>
 
                             <div class="flex justify-between font-bold text-lg border-t pt-3 mt-3">
                                 <p>Total (Tax incl.)</p>
@@ -318,8 +383,8 @@ if (!empty($couponCheck)) {
 
                         <!-- PAYMENT FORMS -->
                         <form action="after_checkout.php" method="POST" class="space-y-4">
-                            <input type="hidden" name="subtotal" value="<?= htmlspecialchars($subtotal) ?>">
-                            <input type="hidden" name="total" value="<?= htmlspecialchars($total) ?>">
+                            <input type="hidden" name="subtotal" value="<?= htmlspecialchars($subtotal) ?>"> <!-- pre-discount -->
+                            <input type="hidden" name="total" value="<?= htmlspecialchars($subtotal) ?>"> <!-- pre-discount -->
                             <input type="hidden" name="payment_type" id="payment_type" value="qr"> 
                             <input type="hidden" name="couponid" id="couponid" value="<?= htmlspecialchars($couponId ?? '') ?>">
                             <input type="hidden" name="discount_percent" id="couponcode" value="<?= htmlspecialchars($discountRaw) ?>">

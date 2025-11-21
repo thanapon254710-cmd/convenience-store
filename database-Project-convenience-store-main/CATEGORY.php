@@ -16,8 +16,9 @@ $stmt = $mysqli->prepare("
     SELECT *
     FROM products
     WHERE category = ?
-    ORDER BY product_name ASC
-");
+    AND status != 'Inactive'
+    ORDER BY product_name ASC");
+    
 $stmt->bind_param("s", $currentCategory);
 $stmt->execute();
 $result = $stmt->get_result();
@@ -77,6 +78,26 @@ $cartTotal = array_sum(array_map(function($i) {
         }
     </script>
 
+    <!-- SweetAlert for logout -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmLogout() {
+            Swal.fire({
+                title: "Confirm Logout",
+                text: "Are you sure?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#b94a4a",
+                cancelButtonColor: "#6b7280",
+                confirmButtonText: "Logout",
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    window.location = 'logout.php';
+                }
+            });
+        }
+    </script>
+
     <!-- Font Awesome (hearts) -->
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
@@ -107,6 +128,7 @@ $cartTotal = array_sum(array_map(function($i) {
                     <li><a href="preach.php"   class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">📜</span><span class="text-sm font-medium">Preach History</span></a></li>
                     <li><a href="contact.php"  class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">💬</span><span class="text-sm font-medium">Contact us</span></a></li>
                     <li><a href="setting.php"  class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">⚙️</span><span class="text-sm font-medium">Setting</span></a></li>
+                    <li><a href="#" onclick="confirmLogout()" class="flex items-center gap-3 px-2 py-2 hover:bg-gray-50"> <span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border">🚪</span><span class="text-sm font-medium">Logout</span></a></li>
                 </ul>
             </nav>
         </div>

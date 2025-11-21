@@ -122,44 +122,24 @@ foreach ($customers as $c) {
 <body class="min-h-screen antialiased text-gray-800">
 <div class="flex min-h-screen">
 
-    <!-- SIDEBAR (Staff style, Customer View active) -->
     <aside class="w-64 bg-sidebar p-4 sticky top-0 h-screen overflow-y-auto">
         <div class="bg-white border border-blue-300 rounded-xl p-4 shadow-sm flex flex-col h-full">
             <div class="flex items-center gap-3 mb-6">
-                <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-400 text-white flex items-center justify-center text-lg font-bold">
-                    <img src="asset/2960679-2182.png" alt="logo" class="w-full h-full rounded-lg">
-                </div>
-                <div>
-                    <div class="text-lg font-semibold">
-                        Staff<br/>
-                        <span class="text-sm text-gray-500">Dashboard</span>
+                <a href="STAFF.php" class="flex items-center gap-3">
+                    <div class="w-12 h-12 rounded-lg bg-gradient-to-br from-blue-600 to-cyan-400 text-white flex items-center justify-center text-lg font-bold"><img src="asset/2960679-2182.png" alt="logo" class="w-full h-full rounded-lg"></div>
+                    <div>
+                        <div class="text-m font-semibold">Staff<span class="text-m text-gray-500"> Dashboard</span></div>
+                        <div class="text-xs text-gray-400 mt-1"><?= htmlspecialchars($_SESSION['username'] ?? 'Staff') ?></div>
                     </div>
-                    <div class="text-xs text-gray-400 mt-1">
-                        <?= htmlspecialchars($_SESSION['username'] ?? 'Staff') ?>
-                    </div>
-                </div>
+                </a>
             </div>
 
             <nav class="flex-1">
                 <ul class="space-y-3">
-                    <li>
-                        <a href="STAFF.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
-                            <span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">📦</span>
-                            <span class="text-sm font-medium">Stock</span>
-                        </a>
-                    </li>
-                    <li class="bg-red-50 rounded-lg">
-                        <a href="STAFF_CUSTOMERS.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
-                            <span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">👥</span>
-                            <span class="text-sm font-medium">Customer View</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#" onclick="confirmLogout()" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50">
-                            <span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">🚪</span>
-                            <span class="text-sm font-medium">Logout</span>
-                        </a>
-                    </li>
+                    <!--Tab Bar-->
+                    <li><a href="STAFF.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-primary">📦</span><span class="text-sm font-medium">Stock</span></a></li>
+                    <li class="bg-red-50 rounded-lg"><a href="STAFF_CUSTOMERS.php" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">👥</span><span class="text-sm font-medium">Customer View</span></a></li>
+                    <li><a href="#" onclick="confirmLogout()" class="flex items-center gap-3 px-2 py-2 rounded-lg hover:bg-gray-50"><span class="w-9 h-9 flex items-center justify-center rounded-md bg-white border text-gray-600">🚪</span><span class="text-sm font-medium">Logout</span></a></li>
                 </ul>
             </nav>
         </div>

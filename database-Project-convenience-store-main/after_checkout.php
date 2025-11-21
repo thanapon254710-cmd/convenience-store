@@ -12,8 +12,8 @@ $cart     = $_SESSION['cart'] ?? [];
 $buyNow = ($_SESSION['checkout_mode'] ?? '') === 'buy_now' ? ($_SESSION['buy_now_item'] ?? null) : null;
 
 // Get data from checkout
-$subtotal        = (float)($_POST['subtotal'] ?? 0);
-$total           = (float)($_POST['total'] ?? 0);
+$subtotal        = (float)($_POST['subtotal'] ?? 0); //pre-discount
+$total           = (float)($_POST['total'] ?? 0); //pre-discount
 $payment_type    = $_POST['payment_type'] ?? 'qr';
 $couponId        = !empty($_POST['couponid']) ? (int)$_POST['couponid'] : null;
 $discountPercent = (float)($_POST['discount_percent'] ?? 0);
@@ -43,7 +43,7 @@ try {
         "isdssi",
         $userId,
         $orderDate,
-        $total,  // already discounted
+        $total,  // pre-discount
         $paymentMethod,
         $status,
         $couponId

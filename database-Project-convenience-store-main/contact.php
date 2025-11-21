@@ -30,7 +30,26 @@
             }
         }
     </script>
-
+    
+    <!-- SweetAlert for logout -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function confirmLogout() {
+            Swal.fire({
+                title: "Confirm Logout",
+                text: "Are you sure?",
+                icon: "warning",
+                showCancelButton: true,
+                confirmButtonColor: "#b94a4a",
+                cancelButtonColor: "#6b7280",
+                confirmButtonText: "Logout",
+            }).then((res) => {
+                if (res.isConfirmed) {
+                    window.location = 'logout.php';
+                }
+            });
+        }
+    </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 

@@ -12,14 +12,13 @@ if (isset($_POST['submit'])) {
     if ($u === '' || $p === '') {
         $error = "Please enter both username and password.";
     } else {
-
         // IMPORTANT: passwords in DB are AES_ENCRYPT(password, SHA1('password'))
         // So here we DECRYPT and compare with the plain text the user typed.
         $sql = "
             SELECT user_id, username, role, points
             FROM users
             WHERE username = ?
-              AND CAST(AES_DECRYPT(password, SHA1('password')) AS CHAR(50)) = ?
+            AND CAST(AES_DECRYPT(password, SHA1('password')) AS CHAR(50)) = ?
             LIMIT 1
         ";
 
